@@ -1,4 +1,4 @@
-package org.vatplanner.archiver;
+package org.vatplanner.archiver.local;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -32,7 +32,7 @@ public class TransitionChecker {
     private final Duration cooldown;
     private final ZoneId timeZone;
 
-    public TransitionChecker(Configuration configuration) {
+    public TransitionChecker(StorageConfiguration configuration) {
         dailyStartTime = configuration.getTransitionDailyLocalTime();
         prelude = configuration.getTransitionPrelude();
         cooldown = configuration.getTransitionCooldown();

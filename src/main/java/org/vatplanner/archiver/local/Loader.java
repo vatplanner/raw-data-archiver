@@ -1,4 +1,4 @@
-package org.vatplanner.archiver;
+package org.vatplanner.archiver.local;
 
 import com.github.cliftonlabs.json_simple.JsonException;
 import com.github.cliftonlabs.json_simple.JsonObject;
@@ -33,6 +33,7 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.vatplanner.archiver.RawDataFile;
 
 /**
  * Loads previously fetched data from storage back into memory.
@@ -103,7 +104,7 @@ public class Loader {
 
     private static final Charset CHARACTER_SET_META_DATA = StandardCharsets.UTF_8;
 
-    public Loader(Configuration config, TransitionChecker transitionChecker) {
+    public Loader(StorageConfiguration config, TransitionChecker transitionChecker) {
         maximumDataFilesPerRequest = config.getMaximumDataFilesPerRequest();
         this.transitionChecker = transitionChecker;
 

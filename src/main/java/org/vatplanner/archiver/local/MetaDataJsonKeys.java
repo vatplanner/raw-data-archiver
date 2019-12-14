@@ -1,4 +1,4 @@
-package org.vatplanner.archiver;
+package org.vatplanner.archiver.local;
 
 import com.github.cliftonlabs.json_simple.JsonKey;
 

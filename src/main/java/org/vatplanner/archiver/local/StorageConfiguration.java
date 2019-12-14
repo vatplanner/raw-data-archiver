@@ -1,4 +1,4 @@
-package org.vatplanner.archiver;
+package org.vatplanner.archiver.local;
 
 import java.io.File;
 import java.time.Duration;
@@ -8,7 +8,7 @@ import java.time.ZoneId;
 /**
  * Holds configuration values for this application.
  */
-public class Configuration {
+public class StorageConfiguration {
 
     /**
      * Returns the maximum number of data files allowed to be loaded into memory

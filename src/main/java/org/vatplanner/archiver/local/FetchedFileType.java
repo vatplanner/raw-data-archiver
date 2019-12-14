@@ -1,4 +1,4 @@
-package org.vatplanner.archiver;
+package org.vatplanner.archiver.local;
 
 /**
  * Identifies file types related to fetched data.
