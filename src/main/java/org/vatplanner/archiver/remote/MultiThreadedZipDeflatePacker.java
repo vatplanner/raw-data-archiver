@@ -15,15 +15,19 @@ import org.vatplanner.archiver.RawDataFile;
  * Packs all data to a ZIP file using "deflate" compression using multiple
  * threads. While ZIP files are the most universally accessible way of packing
  * data, the result of multi-threaded "deflate" is only compressed to a factor
- * of 0.44.
+ * of roughly 0.44.
  *
- * @see {@link SingleThreadZipDeflatePacker} for a slower but slightly better
- * compressing single-threaded implementation
+ * <p>
+ * See {@link SingleThreadedZipDeflatePacker} if single-threaded compression is
+ * needed.
+ * </p>
+ *
+ * @see SingleThreadZipDeflatePacker
  */
 public class MultiThreadedZipDeflatePacker extends AbstractZipPacker {
 
     public MultiThreadedZipDeflatePacker() {
-        super(0.6, ZipEntry.DEFLATED);
+        super(0.5, ZipEntry.DEFLATED);
     }
 
     @Override

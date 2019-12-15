@@ -1,7 +1,17 @@
 package org.vatplanner.archiver.remote;
 
+/**
+ * Factory to more easily instantiate {@link Packer}s.
+ */
 public class PackerFactory {
 
+    /**
+     * Creates a new {@link Packer} to bundle files.
+     *
+     * @param method determines output format and handling
+     * @return new packer instance implementing given method
+     * @throws IllegalArgumentException if called with an unhandled method
+     */
     public Packer createPacker(PackerMethods method) {
         switch (method) {
             case ZIP_UNCOMPRESSED:
