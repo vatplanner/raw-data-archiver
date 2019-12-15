@@ -1,5 +1,6 @@
 # Raw Data Archiver
 
+[![Build Status](https://travis-ci.org/vatplanner/raw-data-archiver.svg?branch=master)](https://travis-ci.org/vatplanner/raw-data-archiver)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 
 When raw VATSIM data files are retrieved periodically and stored for later analysis, they can quickly consume lots of memory. The archiver provides an efficient way to store such data compressed and access it at a later time.
