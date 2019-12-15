@@ -1,6 +1,7 @@
 package org.vatplanner.archiver.remote;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
@@ -24,7 +25,6 @@ public abstract class AbstractZipPacker extends AbstractIndexingPacker {
         int rawSize = originals.stream().mapToInt(f -> f.getData().length).sum();
         channel = new SeekableInMemoryByteChannel((int) (rawSize * expectedCompressionRatio));
 
-        //System.out.println("created: " + ((int) (rawSize * expectedCompressionRatio)));
         zaos = new ZipArchiveOutputStream(channel);
         zaos.setMethod(method);
         return zaos;
@@ -37,11 +37,7 @@ public abstract class AbstractZipPacker extends AbstractIndexingPacker {
         channel.close();
         byte[] compressed = channel.array();
 
-        //System.out.println("written: " + zaos.getBytesWritten());
-        //System.out.println("channel: " + compressed.length);
-        return compressed;
-        //return Arrays.copyOfRange(compressed, 0, (int) zaos.getBytesWritten());
-        //return Arrays.copyOfRange(compressed, 0, (int) channel.size());
+        return Arrays.copyOfRange(compressed, 0, (int) channel.position());
     }
 
     protected ZipArchiveEntry createContentEntry(RawDataFile original) {
