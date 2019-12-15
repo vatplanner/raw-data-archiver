@@ -10,7 +10,7 @@ public class PackerFactory {
      *
      * @param method determines output format and handling
      * @return new packer instance implementing given method
-     * @throws IllegalArgumentException if called with an unhandled method
+     * @throws IllegalArgumentException if called with an unsupported method
      */
     public Packer createPacker(PackerMethods method) {
         switch (method) {
