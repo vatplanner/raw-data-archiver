@@ -1,0 +1,9 @@
+addons:
+  sonarcloud:
+    organization: "vatplanner"
+language: java
+dist: trusty
+jdk:
+ - oraclejdk8
+after_success:
+ - mvn sonar:sonar
