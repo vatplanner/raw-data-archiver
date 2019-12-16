@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Duration;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Properties;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -108,7 +110,14 @@ public class Configuration {
     private StorageConfiguration parseStorageConfiguration(Properties properties) {
         StorageConfiguration config = new StorageConfiguration();
 
-        // TODO: configure
+        setInteger(properties, "storage.maximumDataFilesPerRequest", config::setMaximumDataFilesPerRequest);
+        setString(properties, "storage.transitionalFilesBasePath", config::setTransitionalFilesBasePath);
+        setString(properties, "storage.transitionedArchivesBasePath", config::setTransitionedArchivesBasePath);
+        setLocalTime(properties, "storage.transitionDailyLocalTime", config::setTransitionDailyLocalTime);
+        setZoneId(properties, "storage.transitionTimeZone", config::setTransitionTimeZone);
+        setDuration(properties, "storage.transitionPrelude", config::setTransitionPrelude);
+        setDuration(properties, "storage.transitionCooldown", config::setTransitionCooldown);
+
         return config;
     }
 
@@ -165,4 +174,11 @@ public class Configuration {
         consumer.accept(Duration.parse(properties.getProperty(propertiesKey)));
     }
 
+    private void setZoneId(Properties properties, String propertiesKey, Consumer<ZoneId> consumer) {
+        consumer.accept(ZoneId.of(properties.getProperty(propertiesKey)));
+    }
+
+    private void setLocalTime(Properties properties, String propertiesKey, Consumer<LocalTime> consumer) {
+        consumer.accept(LocalTime.parse(properties.getProperty(propertiesKey)));
+    }
 }

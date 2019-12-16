@@ -10,6 +10,14 @@ import java.time.ZoneId;
  */
 public class StorageConfiguration {
 
+    private int maximumDataFilesPerRequest;
+    private String transitionalFilesBasePath;
+    private String transitionedArchivesBasePath;
+    private LocalTime transitionDailyLocalTime;
+    private Duration transitionPrelude;
+    private Duration transitionCooldown;
+    private ZoneId transitionTimeZone;
+
     /**
      * Returns the maximum number of data files allowed to be loaded into memory
      * per request.
@@ -17,8 +25,12 @@ public class StorageConfiguration {
      * @return maximum number of data files allowed to load per request
      */
     public int getMaximumDataFilesPerRequest() {
-        // FIXME: read from config file; limited by maximum number of files in ZIP as well as reasonable resource limit to avoid OOM and deliver answer before timeout
-        return 10 * 24 * 60 / 2; // 10 days of data at 2 minute interval
+        return maximumDataFilesPerRequest;
+    }
+
+    public StorageConfiguration setMaximumDataFilesPerRequest(int maximumDataFilesPerRequest) {
+        this.maximumDataFilesPerRequest = maximumDataFilesPerRequest;
+        return this;
     }
 
     /**
@@ -30,8 +42,12 @@ public class StorageConfiguration {
      * @return directory holding all transitional single files
      */
     public File getTransitionalFilesBasePath() {
-        // FIXME: read from config file
-        return new File(System.getenv("USERPROFILE") + File.separator + "Desktop" + File.separator + "vatsim" + File.separator + "data");
+        return new File(transitionalFilesBasePath);
+    }
+
+    public StorageConfiguration setTransitionalFilesBasePath(String transitionalFilesBasePath) {
+        this.transitionalFilesBasePath = transitionalFilesBasePath;
+        return this;
     }
 
     /**
@@ -42,8 +58,12 @@ public class StorageConfiguration {
      * @return directory holding all archives
      */
     public File getTransitionedArchivesBasePath() {
-        // FIXME: read from config file
-        return new File(System.getenv("USERPROFILE") + File.separator + "Desktop" + File.separator + "vatsim" + File.separator + "archive");
+        return new File(transitionedArchivesBasePath);
+    }
+
+    public StorageConfiguration setTransitionedArchivesBasePath(String transitionedArchivesBasePath) {
+        this.transitionedArchivesBasePath = transitionedArchivesBasePath;
+        return this;
     }
 
     /**
@@ -56,8 +76,12 @@ public class StorageConfiguration {
      * @see TransitionChecker
      */
     public LocalTime getTransitionDailyLocalTime() {
-        // FIXME: read from config file
-        return LocalTime.of(3, 41);
+        return transitionDailyLocalTime;
+    }
+
+    public StorageConfiguration setTransitionDailyLocalTime(LocalTime transitionDailyLocalTime) {
+        this.transitionDailyLocalTime = transitionDailyLocalTime;
+        return this;
     }
 
     /**
@@ -69,8 +93,12 @@ public class StorageConfiguration {
      * @see TransitionChecker
      */
     public Duration getTransitionPrelude() {
-        // FIXME: read from config file
-        return Duration.ofSeconds(30);
+        return transitionPrelude;
+    }
+
+    public StorageConfiguration setTransitionPrelude(Duration transitionPrelude) {
+        this.transitionPrelude = transitionPrelude;
+        return this;
     }
 
     /**
@@ -84,8 +112,12 @@ public class StorageConfiguration {
      * @see TransitionChecker
      */
     public Duration getTransitionCooldown() {
-        // FIXME: read from config file
-        return Duration.ofMinutes(3);
+        return transitionCooldown;
+    }
+
+    public StorageConfiguration setTransitionCooldown(Duration transitionCooldown) {
+        this.transitionCooldown = transitionCooldown;
+        return this;
     }
 
     /**
@@ -96,7 +128,11 @@ public class StorageConfiguration {
      * @see TransitionChecker
      */
     public ZoneId getTransitionTimeZone() {
-        // FIXME: read from config file
-        return ZoneId.systemDefault();
+        return transitionTimeZone;
+    }
+
+    public StorageConfiguration setTransitionTimeZone(ZoneId transitionTimeZone) {
+        this.transitionTimeZone = transitionTimeZone;
+        return this;
     }
 }
