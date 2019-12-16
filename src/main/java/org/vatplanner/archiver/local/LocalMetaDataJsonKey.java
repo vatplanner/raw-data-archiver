@@ -6,14 +6,14 @@ import com.github.cliftonlabs.json_simple.JsonKey;
  * Keys to reference information of an archive meta data JSON object stored on
  * file system.
  */
-public enum LocalMetaDataJsonKeys implements JsonKey {
+public enum LocalMetaDataJsonKey implements JsonKey {
     FETCH_TIME("timestamp"),
     FETCH_URL_REQUESTED("url");
 
     private final String key;
     private final Object defaultValue;
 
-    private LocalMetaDataJsonKeys(String key) {
+    private LocalMetaDataJsonKey(String key) {
         this.key = key;
         this.defaultValue = null;
     }

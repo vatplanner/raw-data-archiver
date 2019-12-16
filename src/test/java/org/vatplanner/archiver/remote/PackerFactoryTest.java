@@ -14,7 +14,7 @@ public class PackerFactoryTest {
 
     @DataProvider
     public static Object[][] dataProviderPackerMethods() {
-        PackerMethods[] methods = PackerMethods.values();
+        PackerMethod[] methods = PackerMethod.values();
         Object[][] out = new Object[methods.length][1];
 
         for (int i = 0; i < methods.length; i++) {
@@ -27,12 +27,12 @@ public class PackerFactoryTest {
     @DataProvider
     public static Object[][] dataProviderTarMethods() {
         return new Object[][]{
-            {PackerMethods.TAR_BZIP2},
-            {PackerMethods.TAR_DEFLATE},
-            {PackerMethods.TAR_GZIP},
-            {PackerMethods.TAR_LZMA},
-            {PackerMethods.TAR_UNCOMPRESSED},
-            {PackerMethods.TAR_XZ}
+            {PackerMethod.TAR_BZIP2},
+            {PackerMethod.TAR_DEFLATE},
+            {PackerMethod.TAR_GZIP},
+            {PackerMethod.TAR_LZMA},
+            {PackerMethod.TAR_UNCOMPRESSED},
+            {PackerMethod.TAR_XZ}
         };
     }
 
@@ -56,7 +56,7 @@ public class PackerFactoryTest {
 
     @Test
     @UseDataProvider("dataProviderPackerMethodsAndBoolean")
-    public void testCreatePacker_anyPackerMethod_returnsNonNull(PackerMethods method, boolean autoSelectMultiThreading) {
+    public void testCreatePacker_anyPackerMethod_returnsNonNull(PackerMethod method, boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
 
@@ -69,7 +69,7 @@ public class PackerFactoryTest {
 
     @Test
     @UseDataProvider("dataProviderPackerMethodsAndBoolean")
-    public void testCreatePacker_anyPackerMethodSecondCall_returnsNewInstance(PackerMethods method, boolean autoSelectMultiThreading) {
+    public void testCreatePacker_anyPackerMethodSecondCall_returnsNewInstance(PackerMethod method, boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
         Packer first = factory.createPacker(method);
@@ -83,7 +83,7 @@ public class PackerFactoryTest {
 
     @Test
     @UseDataProvider("dataProviderPackerMethodsAndBoolean")
-    public void testCreatePacker_anyPackerMethodSecondCall_returnsSameClass(PackerMethods method, boolean autoSelectMultiThreading) {
+    public void testCreatePacker_anyPackerMethodSecondCall_returnsSameClass(PackerMethod method, boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
         Packer first = factory.createPacker(method);
@@ -102,7 +102,7 @@ public class PackerFactoryTest {
         PackerFactory factory = createFactory(autoSelectMultiThreading);
 
         // Act
-        Packer result = factory.createPacker(PackerMethods.ZIP_UNCOMPRESSED);
+        Packer result = factory.createPacker(PackerMethod.ZIP_UNCOMPRESSED);
 
         // Assert
         assertThat(result, is(instanceOf(UncompressedZipPacker.class)));
@@ -115,7 +115,7 @@ public class PackerFactoryTest {
         PackerFactory factory = createFactory(autoSelectMultiThreading);
 
         // Act
-        Packer result = factory.createPacker(PackerMethods.ZIP_DEFLATE_SINGLETHREADED);
+        Packer result = factory.createPacker(PackerMethod.ZIP_DEFLATE_SINGLETHREADED);
 
         // Assert
         assertThat(result, is(instanceOf(SingleThreadedZipDeflatePacker.class)));
@@ -128,7 +128,7 @@ public class PackerFactoryTest {
         PackerFactory factory = createFactory(autoSelectMultiThreading);
 
         // Act
-        Packer result = factory.createPacker(PackerMethods.ZIP_DEFLATE_MULTITHREADED);
+        Packer result = factory.createPacker(PackerMethod.ZIP_DEFLATE_MULTITHREADED);
 
         // Assert
         assertThat(result, is(instanceOf(MultiThreadedZipDeflatePacker.class)));
@@ -136,7 +136,7 @@ public class PackerFactoryTest {
 
     @Test
     @UseDataProvider("dataProviderTarMethodsAndBoolean")
-    public void testCreatePacker_tarMethod_returnsTarPacker(PackerMethods tarMethod, boolean autoSelectMultiThreading) {
+    public void testCreatePacker_tarMethod_returnsTarPacker(PackerMethod tarMethod, boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
 
@@ -153,7 +153,7 @@ public class PackerFactoryTest {
         PackerFactory factory = createFactory(false);
 
         // Act
-        Packer result = factory.createPacker(PackerMethods.ZIP_DEFLATE);
+        Packer result = factory.createPacker(PackerMethod.ZIP_DEFLATE);
 
         // Assert
         assertThat(result, is(instanceOf(SingleThreadedZipDeflatePacker.class)));
@@ -165,7 +165,7 @@ public class PackerFactoryTest {
         PackerFactory factory = createFactory(true);
 
         // Act
-        Packer result = factory.createPacker(PackerMethods.ZIP_DEFLATE);
+        Packer result = factory.createPacker(PackerMethod.ZIP_DEFLATE);
 
         // Assert
         assertThat(result, is(instanceOf(MultiThreadedZipDeflatePacker.class)));

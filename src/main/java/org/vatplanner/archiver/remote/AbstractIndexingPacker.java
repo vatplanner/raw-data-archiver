@@ -92,9 +92,9 @@ public abstract class AbstractIndexingPacker implements Packer {
         }
 
         JsonObject container = new JsonObject();
-        container.put(RemoteMetaDataContainerJsonKeys.FORMAT_VERSION.getKey(), FORMAT_VERSION);
-        container.put(RemoteMetaDataContainerJsonKeys.CONTENT.getKey(), CONTENT);
-        container.put(RemoteMetaDataContainerJsonKeys.FILES.getKey(), files);
+        container.put(RemoteMetaDataContainerJsonKey.FORMAT_VERSION.getKey(), FORMAT_VERSION);
+        container.put(RemoteMetaDataContainerJsonKey.CONTENT.getKey(), CONTENT);
+        container.put(RemoteMetaDataContainerJsonKey.FILES.getKey(), files);
 
         return serializeJson(container);
     }
@@ -107,10 +107,10 @@ public abstract class AbstractIndexingPacker implements Packer {
      */
     private JsonObject buildFileMetaData(RawDataFile original) {
         JsonObject file = new JsonObject();
-        file.put(RemoteMetaDataFileJsonKeys.FETCH_TIME.getKey(), original.getFetchTime().toString());
-        putFileMetaDataIfNotNull(file, RemoteMetaDataFileJsonKeys.FETCH_NODE, original.getFetchNode());
-        putFileMetaDataIfNotNull(file, RemoteMetaDataFileJsonKeys.FETCH_URL_REQUESTED, original.getFetchUrlRequested());
-        putFileMetaDataIfNotNull(file, RemoteMetaDataFileJsonKeys.FETCH_URL_RETRIEVED, original.getFetchUrlRetrieved());
+        file.put(RemoteMetaDataFileJsonKey.FETCH_TIME.getKey(), original.getFetchTime().toString());
+        putFileMetaDataIfNotNull(file, RemoteMetaDataFileJsonKey.FETCH_NODE, original.getFetchNode());
+        putFileMetaDataIfNotNull(file, RemoteMetaDataFileJsonKey.FETCH_URL_REQUESTED, original.getFetchUrlRequested());
+        putFileMetaDataIfNotNull(file, RemoteMetaDataFileJsonKey.FETCH_URL_RETRIEVED, original.getFetchUrlRetrieved());
         return file;
     }
 
@@ -122,7 +122,7 @@ public abstract class AbstractIndexingPacker implements Packer {
      * @param key key under which value should be stored
      * @param value value to be added unless null
      */
-    private void putFileMetaDataIfNotNull(JsonObject json, RemoteMetaDataFileJsonKeys key, Object value) {
+    private void putFileMetaDataIfNotNull(JsonObject json, RemoteMetaDataFileJsonKey key, Object value) {
         if (value == null) {
             return;
         }

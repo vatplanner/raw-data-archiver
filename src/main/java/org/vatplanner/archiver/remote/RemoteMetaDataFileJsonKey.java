@@ -7,7 +7,7 @@ import org.vatplanner.archiver.RawDataFile;
  * {@link JsonKey}s to address meta data for a single file in remote packed
  * container.
  */
-public enum RemoteMetaDataFileJsonKeys implements JsonKey {
+public enum RemoteMetaDataFileJsonKey implements JsonKey {
     /**
      * Holds the timestamp of when fetched data had been requested.
      *
@@ -38,7 +38,7 @@ public enum RemoteMetaDataFileJsonKeys implements JsonKey {
     private final String key;
     private final Object defaultValue;
 
-    private RemoteMetaDataFileJsonKeys(String key) {
+    private RemoteMetaDataFileJsonKey(String key) {
         this.key = key;
         this.defaultValue = null;
     }

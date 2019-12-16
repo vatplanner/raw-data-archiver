@@ -36,7 +36,7 @@ import java.util.Map;
  * data volume has to be conserved.</li>
  * </ul>
  */
-public enum PackerMethods {
+public enum PackerMethod {
     /**
      * Packs data to an uncompressed ZIP file, should only be used if resulting
      * size is no concern. See {@link UncompressedZipPacker} for more
@@ -107,20 +107,20 @@ public enum PackerMethods {
     private final String requestShortCode;
     private final String packedShortCode;
 
-    private static final Map<String, PackerMethods> BY_REQUEST_SHORT_CODE = new HashMap<>();
+    private static final Map<String, PackerMethod> BY_REQUEST_SHORT_CODE = new HashMap<>();
 
     static {
-        for (PackerMethods method : values()) {
+        for (PackerMethod method : values()) {
             BY_REQUEST_SHORT_CODE.put(method.requestShortCode, method);
         }
     }
 
-    private PackerMethods(String packedShortCode) {
+    private PackerMethod(String packedShortCode) {
         this.requestShortCode = packedShortCode;
         this.packedShortCode = packedShortCode;
     }
 
-    private PackerMethods(String requestShortCode, String packedShortCode) {
+    private PackerMethod(String requestShortCode, String packedShortCode) {
         this.requestShortCode = requestShortCode;
         this.packedShortCode = packedShortCode;
     }
@@ -141,8 +141,8 @@ public enum PackerMethods {
      * @return matching method
      * @throws IllegalArgumentException if short code is unknown
      */
-    public static PackerMethods byRequestShortCode(String requestShortCode) {
-        PackerMethods method = BY_REQUEST_SHORT_CODE.get(requestShortCode);
+    public static PackerMethod byRequestShortCode(String requestShortCode) {
+        PackerMethod method = BY_REQUEST_SHORT_CODE.get(requestShortCode);
         if (method == null) {
             throw new IllegalArgumentException("unknown request short code \"" + requestShortCode + "\"");
         }

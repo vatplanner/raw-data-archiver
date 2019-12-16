@@ -9,7 +9,7 @@ import java.util.HashMap;
  * {@link JsonKey}s to address generic (container) meta data in remote packed
  * files.
  */
-public enum RemoteMetaDataContainerJsonKeys implements JsonKey {
+public enum RemoteMetaDataContainerJsonKey implements JsonKey {
     /**
      * Version of packed data format. Only to be incremented if incompatible
      * with previous versions.
@@ -31,12 +31,12 @@ public enum RemoteMetaDataContainerJsonKeys implements JsonKey {
     private final String key;
     private final Object defaultValue;
 
-    private RemoteMetaDataContainerJsonKeys(String key) {
+    private RemoteMetaDataContainerJsonKey(String key) {
         this.key = key;
         this.defaultValue = null;
     }
 
-    private RemoteMetaDataContainerJsonKeys(String key, Object defaultValue) {
+    private RemoteMetaDataContainerJsonKey(String key, Object defaultValue) {
         this.key = key;
         this.defaultValue = defaultValue;
     }

@@ -20,11 +20,11 @@ public class PackerFactory {
      * @return new packer instance implementing given method
      * @throws IllegalArgumentException if called with an unsupported method
      */
-    public Packer createPacker(PackerMethods method) {
-        if (method == PackerMethods.ZIP_DEFLATE) {
+    public Packer createPacker(PackerMethod method) {
+        if (method == PackerMethod.ZIP_DEFLATE) {
             method = configuration.shouldAutoSelectMultiThreading()
-                    ? PackerMethods.ZIP_DEFLATE_MULTITHREADED
-                    : PackerMethods.ZIP_DEFLATE_SINGLETHREADED;
+                    ? PackerMethod.ZIP_DEFLATE_MULTITHREADED
+                    : PackerMethod.ZIP_DEFLATE_SINGLETHREADED;
         }
 
         switch (method) {

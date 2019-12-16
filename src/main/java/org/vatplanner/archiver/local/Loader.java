@@ -662,9 +662,9 @@ public class Loader {
                 ) {
             JsonObject json = (JsonObject) Jsoner.deserialize(isr);
 
-            rawDataFile.setFetchUrlRequested(json.getString(LocalMetaDataJsonKeys.FETCH_URL_REQUESTED));
+            rawDataFile.setFetchUrlRequested(json.getString(LocalMetaDataJsonKey.FETCH_URL_REQUESTED));
 
-            String actualFetchTimestampString = json.getString(LocalMetaDataJsonKeys.FETCH_TIME);
+            String actualFetchTimestampString = json.getString(LocalMetaDataJsonKey.FETCH_TIME);
             Instant actualFetchTime = Instant.parse(actualFetchTimestampString);
             if (!rawDataFile.getFetchTime().equals(actualFetchTime)) {
                 throw new IOException("inconsistent data; fetch time was " + actualFetchTime + " according to meta data but has been indexed as " + rawDataFile.getFetchTime());

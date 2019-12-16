@@ -15,7 +15,7 @@ import org.vatplanner.archiver.RawDataFile;
 import org.vatplanner.archiver.local.Loader;
 import org.vatplanner.archiver.remote.Packer;
 import org.vatplanner.archiver.remote.PackerFactory;
-import org.vatplanner.archiver.remote.PackerMethods;
+import org.vatplanner.archiver.remote.PackerMethod;
 
 /**
  * Processes requests for raw data files.
@@ -40,7 +40,7 @@ public class DataFileRequestProcessor implements Processor {
         JsonObject json = Jsoner.deserialize(body, new JsonObject());
 
         // read request configuration
-        PackerMethods packerMethod = PackerMethods.byRequestShortCode(json.getString(DataFileRequestJsonKey.PACKER_METHOD));
+        PackerMethod packerMethod = PackerMethod.byRequestShortCode(json.getString(DataFileRequestJsonKey.PACKER_METHOD));
         Instant earliestFetchTime = Instant.parse(json.getString(DataFileRequestJsonKey.EARLIEST_FETCH_TIME));
         Instant latestFetchTime = Instant.parse(json.getString(DataFileRequestJsonKey.LATEST_FETCH_TIME));
         int fileLimit = json.getIntegerOrDefault(DataFileRequestJsonKey.FILE_LIMIT);
