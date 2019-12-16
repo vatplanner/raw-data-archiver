@@ -113,7 +113,7 @@ public abstract class AbstractZipPacker extends AbstractIndexingPacker {
      * @return archive entry for the application JSON meta data file
      */
     protected ZipArchiveEntry createMetaDataEntry(Collection<RawDataFile> originals) {
-        ZipArchiveEntry entry = new ZipArchiveEntry("meta.json");
+        ZipArchiveEntry entry = new ZipArchiveEntry(META_DATA_FILE_NAME);
         entry.setMethod(method);
 
         byte[] data = getMetaData(originals);

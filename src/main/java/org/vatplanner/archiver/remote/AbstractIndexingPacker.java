@@ -28,6 +28,8 @@ public abstract class AbstractIndexingPacker implements Packer {
     private static final int FORMAT_VERSION = 1;
     private static final String CONTENT = "StatusDataFile";
 
+    public static final String META_DATA_FILE_NAME = "meta.json";
+
     /**
      * Returns the index addressing the given file in meta data. Unknown files
      * are automatically assigned a new index number. Subsequent calls for the

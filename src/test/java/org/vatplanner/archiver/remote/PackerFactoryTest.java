@@ -16,6 +16,18 @@ public class PackerFactoryTest {
         return PackerMethods.values();
     }
 
+    @DataProvider
+    public static Object[] dataProviderTarMethods() {
+        return new Object[]{
+            PackerMethods.TAR_BZIP2,
+            PackerMethods.TAR_DEFLATE,
+            PackerMethods.TAR_GZIP,
+            PackerMethods.TAR_LZMA,
+            PackerMethods.TAR_UNCOMPRESSED,
+            PackerMethods.TAR_XZ
+        };
+    }
+
     @Test
     @UseDataProvider("dataProviderPackerMethods")
     public void testCreatePacker_anyPackerMethod_returnsNonNull(PackerMethods method) {
@@ -91,5 +103,18 @@ public class PackerFactoryTest {
 
         // Assert
         assertThat(result, is(instanceOf(MultiThreadedZipDeflatePacker.class)));
+    }
+
+    @Test
+    @UseDataProvider("dataProviderTarMethods")
+    public void testCreatePacker_tarMethod_returnsTarPacker(PackerMethods tarMethod) {
+        // Arrange
+        PackerFactory factory = new PackerFactory();
+
+        // Act
+        Packer result = factory.createPacker(tarMethod);
+
+        // Assert
+        assertThat(result, is(instanceOf(TarPacker.class)));
     }
 }
