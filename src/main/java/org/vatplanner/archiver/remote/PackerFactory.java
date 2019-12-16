@@ -7,6 +7,12 @@ import org.apache.commons.compress.compressors.CompressorStreamFactory;
  */
 public class PackerFactory {
 
+    private final PackerConfiguration configuration;
+
+    public PackerFactory(PackerConfiguration configuration) {
+        this.configuration = configuration;
+    }
+
     /**
      * Creates a new {@link Packer} to bundle files.
      *
@@ -15,6 +21,12 @@ public class PackerFactory {
      * @throws IllegalArgumentException if called with an unsupported method
      */
     public Packer createPacker(PackerMethods method) {
+        if (method == PackerMethods.ZIP_DEFLATE) {
+            method = configuration.shouldAutoSelectMultiThreading()
+                    ? PackerMethods.ZIP_DEFLATE_MULTITHREADED
+                    : PackerMethods.ZIP_DEFLATE_SINGLETHREADED;
+        }
+
         switch (method) {
             case ZIP_UNCOMPRESSED:
                 return new UncompressedZipPacker();
