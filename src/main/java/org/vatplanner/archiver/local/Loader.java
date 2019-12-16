@@ -33,6 +33,8 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vatplanner.archiver.RawDataFile;
 
 /**
@@ -71,6 +73,8 @@ import org.vatplanner.archiver.RawDataFile;
  * </p>
  */
 public class Loader {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Loader.class);
 
     private final int maximumDataFilesPerRequest;
     private final TransitionChecker transitionChecker;
@@ -144,6 +148,8 @@ public class Loader {
 
         int remainingFileLimit = Integer.min(fileLimit, maximumDataFilesPerRequest);
 
+        LOGGER.debug("Loading at most {} files (requested {}) fetched between {} and {}", remainingFileLimit, fileLimit, earliestFetchTime, latestFetchTime);
+
         List<RawDataFile> loaded = new ArrayList<>();
 
         try {
@@ -158,16 +164,25 @@ public class Loader {
 
             loaded.addAll(loadFromTransitionalFiles(earliestFetchTime, latestFetchTime, remainingFileLimit));
         } catch (IOException ex) {
-            // TODO: log
-            ex.printStackTrace();
+            LOGGER.warn(
+                    "Loading data failed; requested at most " + fileLimit + " files from "
+                    + (earliestFetchTime != null ? earliestFetchTime.toString() : "null") + " to "
+                    + (latestFetchTime != null ? latestFetchTime.toString() : "null"),
+                    ex
+            );
             return null;
         }
 
         loaded.sort(Comparator.comparing(RawDataFile::getFetchTime));
 
+        LOGGER.debug("Loaded total of {} files", loaded.size());
+
+        // FIXME: does not seem to be effective file limit (limit by min maximumDataFilesPerRequest?)
         if (loaded.size() > fileLimit) {
             loaded = loaded.subList(0, fileLimit);
         }
+
+        LOGGER.debug("Returning {} files", loaded.size());
 
         return loaded;
     }
@@ -185,7 +200,7 @@ public class Loader {
         try {
             earliestArchivedFetchDate = findEarliestTransitionedFetchDate();
         } catch (IOException ex) {
-            // TODO: log
+            LOGGER.warn("Unable to determine earliest transitioned fetch date, assuming no data.", ex);
             return null;
         }
 
@@ -216,21 +231,21 @@ public class Loader {
         int year = findNumericDirectoryNameMinimum(transitionedBasePath, PATTERN_DIRECTORY_YEAR)
                 .orElse(-1);
         if (year < 0) {
-            // TODO: log
+            LOGGER.warn("Transitioned data appears to be missing year folders; this indicates there is no transitioned data at all! Check if that is correct.");
             return null;
         }
 
         int month = findNumericDirectoryNameMinimum(getTransitionedDirectory(year), PATTERN_DIRECTORY_MONTH)
                 .orElse(-1);
         if (month < 0) {
-            // TODO: log
+            LOGGER.error("Transitioned data appears to be missing month folders for year {}; this indicates corrupted folder structure! Data will be inaccessible.", year);
             return null;
         }
 
         int day = findNumericFileNameMinimum(getTransitionedDirectory(year, month), PATTERN_ARCHIVE, PATTERN_ARCHIVE_DAY)
                 .orElse(-1);
         if (day < 0) {
-            // TODO: log
+            LOGGER.error("Transitioned data appears to be missing day files for month {}, year {}; this indicates corrupted folder structure! Data will be inaccessible.", month, year);
             return null;
         }
 
@@ -296,7 +311,7 @@ public class Loader {
      */
     private OptionalInt findNumericDirectoryNameMinimum(File directory, Pattern pattern) {
         if (!directory.exists() || !directory.isDirectory()) {
-            // TODO: log
+            LOGGER.warn("Directory for transitioned data does not exist: {}", directory);
             return OptionalInt.empty();
         }
 
@@ -320,7 +335,7 @@ public class Loader {
      */
     private OptionalInt findNumericFileNameMinimum(File directory, Pattern pattern, int matcherGroupIndex) {
         if (!directory.exists() || !directory.isDirectory()) {
-            // TODO: log
+            LOGGER.warn("Directory for transitioned data does not exist: {}", directory);
             return OptionalInt.empty();
         }
 
@@ -421,7 +436,7 @@ public class Loader {
             // skip unsupported files
             FetchedFileType fileType = FetchedFileType.byFileName(fileName);
             if (fileType == null) {
-                // TODO: log
+                LOGGER.debug("Skipping unsupported file: {}", file);
                 continue;
             }
 
@@ -447,7 +462,8 @@ public class Loader {
                         break;
 
                     default:
-                    // TODO: log
+                        LOGGER.warn("File type {} read from {} is not taken into account!", fileType, file);
+                        break;
                 }
             } catch (IOException ex) {
                 throw new IOException("failed to read data from " + file.getCanonicalPath(), ex);
@@ -514,7 +530,6 @@ public class Loader {
         // check if out of requested range
         LocalDate latestFetchDate = toLocalDateUTC(latestFetchTime);
         if (fetchDate.isAfter(latestFetchDate)) {
-            System.out.println("after " + fetchDate + " " + latestFetchDate);
             return false;
         }
 
@@ -541,7 +556,7 @@ public class Loader {
 
         File archiveFile = getTransitionedArchiveFile(fetchDate);
 
-        System.out.println("opening " + archiveFile.getCanonicalPath()); // DEBUG
+        LOGGER.debug("opening transitional file {}", archiveFile);
 
         if (!archiveFile.exists() || !archiveFile.canRead()) {
             throw new RuntimeException("expected archive file " + archiveFile.getCanonicalPath() + " does not exist or is inaccessible, unable to load data");
@@ -565,7 +580,7 @@ public class Loader {
                 // skip unsupported files
                 FetchedFileType fileType = FetchedFileType.byFileName(fileName);
                 if (fileType == null) {
-                    // TODO: log
+                    LOGGER.debug("Skipping unsupported file {} read from {}", fileName, archiveFile);
                     continue;
                 }
 
@@ -582,7 +597,8 @@ public class Loader {
                         break;
 
                     default:
-                    // TODO: log
+                        LOGGER.warn("File type {} read from {} of {} is not taken into account!", fileType, fileName, archiveFile);
+                        break;
                 }
             }
         } catch (Exception ex) {
