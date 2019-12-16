@@ -76,6 +76,8 @@ public class DataFileRequestProcessor implements Processor {
         Message out = exchange.getIn().copy();
         out.setBody(packed);
         exchange.setMessage(out);
+
+        // TODO: indicate packed method in message header
     }
 
 }
