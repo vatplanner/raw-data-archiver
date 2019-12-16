@@ -3,7 +3,7 @@ package org.vatplanner.archiver;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
 import java.time.LocalTime;
@@ -41,7 +41,7 @@ public class Configuration {
         boolean success = true;
 
         Properties properties = new Properties();
-        success &= load(properties, getDefaultConfigurationFile());
+        success &= load(properties, getDefaultConfigurationUrl());
         success &= load(properties, getLocalConfigurationFile(filePath));
 
         if (!success) {
@@ -61,13 +61,32 @@ public class Configuration {
      * @return true if file was read successfully, false if an error occurred
      */
     private boolean load(Properties properties, File file) {
-        LOGGER.info("Loading configuration from {}", file);
+        LOGGER.info("Loading configuration from file {}", file);
 
         try (FileReader fr = new FileReader(file)) {
             properties.load(fr);
             return true;
         } catch (IOException ex) {
-            LOGGER.error("Failed to read configuration file " + file, ex);
+            LOGGER.error("Failed to read configuration from file " + file, ex);
+            return false;
+        }
+    }
+
+    /**
+     * Overloads configuration options from given {@link URL} into
+     * {@link Properties}.
+     *
+     * @param properties properties to receive overloaded options
+     * @param url URL of configuration file to read
+     * @return true if file was read successfully, false if an error occurred
+     */
+    private boolean load(Properties properties, URL url) {
+        LOGGER.info("Loading configuration from URL {}", url);
+        try (InputStream is = url.openStream()) {
+            properties.load(is);
+            return true;
+        } catch (IOException ex) {
+            LOGGER.error("Failed to read configuration from URL " + url, ex);
             return false;
         }
     }
@@ -80,14 +99,8 @@ public class Configuration {
      *
      * @return reference to the default configuration file
      */
-    private File getDefaultConfigurationFile() {
-        URL defaultPropertiesResource = getClass().getClassLoader().getResource(DEFAULT_PROPERTIES_RESOURCE);
-        try {
-            return new File(defaultPropertiesResource.toURI());
-        } catch (URISyntaxException ex) {
-            LOGGER.error("Unable to retrieve default properties file for {}", DEFAULT_PROPERTIES_RESOURCE, ex);
-            return null;
-        }
+    private URL getDefaultConfigurationUrl() {
+        return getClass().getClassLoader().getResource(DEFAULT_PROPERTIES_RESOURCE);
     }
 
     /**
