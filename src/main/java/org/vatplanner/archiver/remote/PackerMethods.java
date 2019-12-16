@@ -1,5 +1,8 @@
 package org.vatplanner.archiver.remote;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Methods by which data can be packed.
  * <p>
@@ -104,6 +107,14 @@ public enum PackerMethods {
     private final String requestShortCode;
     private final String packedShortCode;
 
+    private static final Map<String, PackerMethods> BY_REQUEST_SHORT_CODE = new HashMap<>();
+
+    static {
+        for (PackerMethods method : values()) {
+            BY_REQUEST_SHORT_CODE.put(method.requestShortCode, method);
+        }
+    }
+
     private PackerMethods(String packedShortCode) {
         this.requestShortCode = packedShortCode;
         this.packedShortCode = packedShortCode;
@@ -113,4 +124,30 @@ public enum PackerMethods {
         this.requestShortCode = requestShortCode;
         this.packedShortCode = packedShortCode;
     }
+
+    /**
+     * Returns the short code used to identify the method after packing.
+     *
+     * @return short code identifying method after packing
+     */
+    public String getPackedShortCode() {
+        return packedShortCode;
+    }
+
+    /**
+     * Resolves the given short code used during requests to a method.
+     *
+     * @param requestShortCode short code identifying requested method
+     * @return matching method
+     * @throws IllegalArgumentException if short code is unknown
+     */
+    public static PackerMethods byRequestShortCode(String requestShortCode) {
+        PackerMethods method = BY_REQUEST_SHORT_CODE.get(requestShortCode);
+        if (method == null) {
+            throw new IllegalArgumentException("unknown request short code \"" + requestShortCode + "\"");
+        }
+
+        return method;
+    }
+
 }
