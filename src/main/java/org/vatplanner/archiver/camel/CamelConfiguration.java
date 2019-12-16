@@ -1,11 +1,15 @@
 package org.vatplanner.archiver.camel;
 
 import java.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Holds configuration related to Camel.
  */
 public class CamelConfiguration {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CamelConfiguration.class);
 
     private String amqpHost;
     private int amqpPort;
@@ -23,6 +27,7 @@ public class CamelConfiguration {
     }
 
     public CamelConfiguration setAmqpHost(String amqpHost) {
+        LOGGER.debug("setting amqpHost to {}", amqpHost);
         this.amqpHost = amqpHost;
         return this;
     }
@@ -32,6 +37,7 @@ public class CamelConfiguration {
     }
 
     public CamelConfiguration setAmqpPort(int amqpPort) {
+        LOGGER.debug("setting amqpPort to {}", amqpPort);
         this.amqpPort = amqpPort;
         return this;
     }
@@ -41,6 +47,7 @@ public class CamelConfiguration {
     }
 
     public CamelConfiguration setAmqpUsername(String amqpUsername) {
+        LOGGER.debug("setting amqpUsername to {}", amqpUsername);
         this.amqpUsername = amqpUsername;
         return this;
     }
@@ -50,6 +57,7 @@ public class CamelConfiguration {
     }
 
     public CamelConfiguration setAmqpPassword(String amqpPassword) {
+        LOGGER.debug("setting amqpPassword (details not logged)");
         this.amqpPassword = amqpPassword;
         return this;
     }
@@ -59,6 +67,7 @@ public class CamelConfiguration {
     }
 
     public CamelConfiguration setAmqpVirtualHost(String amqpVirtualHost) {
+        LOGGER.debug("setting amqpVirtualHost to {}", amqpVirtualHost);
         this.amqpVirtualHost = amqpVirtualHost;
         return this;
     }
@@ -68,6 +77,7 @@ public class CamelConfiguration {
     }
 
     public CamelConfiguration setRequestsExchange(String requestsExchange) {
+        LOGGER.debug("setting requestsExchange to {}", requestsExchange);
         this.requestsExchange = requestsExchange;
         return this;
     }
@@ -77,6 +87,7 @@ public class CamelConfiguration {
     }
 
     public CamelConfiguration setRequestsQueue(String requestsQueue) {
+        LOGGER.debug("setting requestsQueue to {}", requestsQueue);
         this.requestsQueue = requestsQueue;
         return this;
     }
@@ -86,6 +97,7 @@ public class CamelConfiguration {
     }
 
     public CamelConfiguration setRequestsQueueTTL(Duration requestsQueueTTL) {
+        LOGGER.debug("setting requestsQueueTTL to {}", requestsQueueTTL);
         this.requestsQueueTTL = requestsQueueTTL;
         return this;
     }
@@ -95,6 +107,7 @@ public class CamelConfiguration {
     }
 
     public CamelConfiguration setRequestsConsumers(int requestsConsumers) {
+        LOGGER.debug("setting requestsConsumers to {}", requestsConsumers);
         this.requestsConsumers = requestsConsumers;
         return this;
     }

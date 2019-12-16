@@ -1,9 +1,14 @@
 package org.vatplanner.archiver.remote;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Holds configuration options relevant to packers.
  */
 public class PackerConfiguration {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PackerConfiguration.class);
 
     private boolean autoSelectMultiThreading = false;
 
@@ -27,6 +32,7 @@ public class PackerConfiguration {
      * @return this instance for method-chaining
      */
     public PackerConfiguration setAutoSelectMultiThreading(boolean autoSelectMultiThreading) {
+        LOGGER.debug("setting autoSelectMultiThreading to {}", autoSelectMultiThreading);
         this.autoSelectMultiThreading = autoSelectMultiThreading;
         return this;
     }

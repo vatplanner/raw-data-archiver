@@ -4,11 +4,15 @@ import java.io.File;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Holds configuration values for this application.
  */
 public class StorageConfiguration {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StorageConfiguration.class);
 
     private int maximumDataFilesPerRequest;
     private String transitionalFilesBasePath;
@@ -29,6 +33,7 @@ public class StorageConfiguration {
     }
 
     public StorageConfiguration setMaximumDataFilesPerRequest(int maximumDataFilesPerRequest) {
+        LOGGER.debug("setting maximumDataFilesPerRequest to {}", maximumDataFilesPerRequest);
         this.maximumDataFilesPerRequest = maximumDataFilesPerRequest;
         return this;
     }
@@ -46,6 +51,7 @@ public class StorageConfiguration {
     }
 
     public StorageConfiguration setTransitionalFilesBasePath(String transitionalFilesBasePath) {
+        LOGGER.debug("setting transitionalFilesBasePath to {}", transitionalFilesBasePath);
         this.transitionalFilesBasePath = transitionalFilesBasePath;
         return this;
     }
@@ -62,6 +68,7 @@ public class StorageConfiguration {
     }
 
     public StorageConfiguration setTransitionedArchivesBasePath(String transitionedArchivesBasePath) {
+        LOGGER.debug("setting transitionedArchivesBasePath to {}", transitionedArchivesBasePath);
         this.transitionedArchivesBasePath = transitionedArchivesBasePath;
         return this;
     }
@@ -80,6 +87,7 @@ public class StorageConfiguration {
     }
 
     public StorageConfiguration setTransitionDailyLocalTime(LocalTime transitionDailyLocalTime) {
+        LOGGER.debug("setting transitionDailyLocalTime to {}", transitionDailyLocalTime);
         this.transitionDailyLocalTime = transitionDailyLocalTime;
         return this;
     }
@@ -97,6 +105,7 @@ public class StorageConfiguration {
     }
 
     public StorageConfiguration setTransitionPrelude(Duration transitionPrelude) {
+        LOGGER.debug("setting transitionPrelude to {}", transitionPrelude);
         this.transitionPrelude = transitionPrelude;
         return this;
     }
@@ -116,6 +125,7 @@ public class StorageConfiguration {
     }
 
     public StorageConfiguration setTransitionCooldown(Duration transitionCooldown) {
+        LOGGER.debug("setting transitionCooldown to {}", transitionCooldown);
         this.transitionCooldown = transitionCooldown;
         return this;
     }
@@ -132,6 +142,7 @@ public class StorageConfiguration {
     }
 
     public StorageConfiguration setTransitionTimeZone(ZoneId transitionTimeZone) {
+        LOGGER.debug("setting transitionTimeZone to {}", transitionTimeZone);
         this.transitionTimeZone = transitionTimeZone;
         return this;
     }
