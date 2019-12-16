@@ -556,7 +556,7 @@ public class Loader {
 
         File archiveFile = getTransitionedArchiveFile(fetchDate);
 
-        LOGGER.debug("opening transitional file {}", archiveFile);
+        LOGGER.debug("opening transitioned file {}", archiveFile);
 
         if (!archiveFile.exists() || !archiveFile.canRead()) {
             throw new RuntimeException("expected archive file " + archiveFile.getCanonicalPath() + " does not exist or is inaccessible, unable to load data");
