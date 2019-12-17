@@ -135,6 +135,15 @@ public enum PackerMethod {
     }
 
     /**
+     * Returns the short code used to identify the method on requests.
+     *
+     * @return short code identifying method on requests
+     */
+    public String getRequestShortCode() {
+        return requestShortCode;
+    }
+
+    /**
      * Resolves the given short code used during requests to a method.
      *
      * @param requestShortCode short code identifying requested method
