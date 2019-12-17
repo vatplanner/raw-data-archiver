@@ -6,7 +6,7 @@
     <groupId>org.vatplanner</groupId>
     <artifactId>raw-data-archiver-parent</artifactId>
     <version>0.1-SNAPSHOT</version>
-    <name>Raw Data Archiver Parent</name>
+    <name>Raw Data Archiver</name>
     <packaging>pom</packaging>
 
     <modules>
