@@ -28,7 +28,35 @@ For immediate access, files of the current day are stored as single files called
 
 API is currently not stable and may change without notice.
 
+## Compilation and Running
+
+### Compilation
+
+On parent module run `mvn clean install` to compile and locally install all modules.
+
+The [server](server) module can be packaged to a "JAR with dependencies" usable for standalone deployment by running `mvn assembly:single` inside the `server` module directory.
+
+### Server
+
+You need a RabbitMQ or compatible AMQP server to connect the archive server to.
+
+Running the archive server from a "JAR with dependencies" is recommended.
+
+When starting the server, a local configuration file is by default expected as `~/.vatplanner/raw-data-archiver.properties`. A different path can be specified as first argument. Refer to the [default configuration](server/src/main/resources/raw-data-archiver.properties) for all available options. Since the default configuration packaged with the server JAR will be used, the local configuration only needs to declare the differences to default configuration.
+
+Note that large amounts of Java heap memory are allocated when archive requests are served. By default Java is very reluctant to release heap memory back to the operating system, which will most likely result in a huge amount of memory remaining allocated although unused. You may want to add additional parameters to make the JVM garbage collector more likely to release heap memory, such as for example (with JDK 8):
+
+`java -XX:GCTimeRatio=50 -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -Xmx4G -XX:InitiatingHeapOccupancyPercent=11 -jar path/to/your/archiver.jar`
+
+Generally, this will have a bad effect on performance if parameters are chosen wrong or actually used heap memory grows too large over time. You are recommended to tune those parameters depending on your own observations.
+
+### Client
+
+A Java client (currently not ready for production use) is provided with module [client](client).
+
 ## RPC over RabbitMQ/AMQP
+
+This section describes the details of communication between clients and server. Such knowledge is not necessarily required when just using the provided [client](client) module.
 
 ### Retrieve Data Files
 
