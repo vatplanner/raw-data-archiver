@@ -23,6 +23,8 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vatplanner.archiver.common.DataFileRequestJsonKey;
 import org.vatplanner.archiver.common.PackerMethod;
 import org.vatplanner.archiver.common.RawDataFile;
@@ -31,6 +33,8 @@ import org.vatplanner.archiver.common.RemoteMetaDataFileJsonKey;
 
 public class RawDataFileClient {
     // FIXME: quick naive implementation for testing only, requires full overhaul
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RawDataFile.class);
 
     private final Connection connection;
     private final Channel channel;
@@ -77,12 +81,15 @@ public class RawDataFileClient {
                         .putChain(DataFileRequestJsonKey.PACKER_METHOD.getKey(), packerMethod.getRequestShortCode())
                         .putChain(DataFileRequestJsonKey.FILE_LIMIT.getKey(), fileLimit);
 
-                System.out.println("sending request"); // DEBUG
-                RpcClient.Response response = rpc.responseCall(jsonRequest.toJson().getBytes());
+                String jsonRequestString = jsonRequest.toJson();
+                LOGGER.debug("sending RPC request to AMQP: {}", jsonRequestString);
+                RpcClient.Response response = rpc.responseCall(jsonRequestString.getBytes());
 
+                // FIXME: use server-submitted header for packer method
                 String responsePackerMethodString = (String) response.getProperties().getHeaders().getOrDefault("packerMethod", packerMethod.getPackedShortCode());
                 byte[] responseBody = response.getBody();
-                System.out.println("response " + responsePackerMethodString + " " + responseBody.length);  // DEBUG
+                LOGGER.debug("AMQP RPC response arrived, packer method {}, encoded length {}", responsePackerMethodString, responseBody.length);
+                PackerMethod responsePackerMethod = PackerMethod.byPackedShortCode(responsePackerMethodString);
                 BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(responseBody));
                 responseBody = null; // FIXME: do not save byte[] to variable, just forward to BAIS if debug output no longer needed
 
@@ -90,17 +97,16 @@ public class RawDataFileClient {
                 channel.close();
                 connection.close();
 
-                System.out.println("----"); // DEBUG
-
                 Map<String, RawDataFile> rawDataFiles = new HashMap<>();
 
-                // FIXME: resolve implementations from server-submitted header
-                try {
-                    CompressorInputStream cis = new CompressorStreamFactory().createCompressorInputStream(bis);
-                    bis = new BufferedInputStream(cis);
-                } catch (Exception ex) {
-                    // expected for ZIP
-                    ex.printStackTrace();
+                boolean needsExplicitDecompression = !(responsePackerMethod.isUncompressed() || responsePackerMethod.isZipMethod());
+                if (needsExplicitDecompression) {
+                    try {
+                        CompressorInputStream cis = new CompressorStreamFactory().createCompressorInputStream(bis);
+                        bis = new BufferedInputStream(cis);
+                    } catch (Exception ex) {
+                        throw new RuntimeException("response packer method " + responsePackerMethod + " requires explicit decompression but setting up stream failed", ex);
+                    }
                 }
                 ArchiveInputStream ais = new ArchiveStreamFactory().createArchiveInputStream(bis);
 
@@ -115,7 +121,7 @@ public class RawDataFileClient {
                         read += ais.read(data, read, size - read);
                     }
 
-                    System.out.println(name);
+                    LOGGER.trace("reading {}", name);
 
                     if (name.equals("meta.json")) { // FIXME: use common constant
                         InputStreamReader dataReader = new InputStreamReader(new ByteArrayInputStream(data));
