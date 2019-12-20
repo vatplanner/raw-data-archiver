@@ -42,27 +42,27 @@ public enum PackerMethod {
      * size is no concern. See {@link UncompressedZipPacker} for more
      * information.
      */
-    ZIP_UNCOMPRESSED("zip/uncompressed", "zip"),
+    ZIP_UNCOMPRESSED("zip/uncompressed"),
     /**
      * Packs data to a "deflate" compressed ZIP file. Result will be compressed
      * to roughly 44% of original size. Server decides whether result is encoded
      * single- or multi-threaded.
      */
-    ZIP_DEFLATE("zip/deflate", "zip"),
+    ZIP_DEFLATE("zip/deflate", "zip/deflate"),
     /**
      * Packs data to a "deflate" compressed ZIP file single-threaded. Result
      * will be compressed to roughly 44% of original size. See
      * {@link SingleThreadedZipDeflatePacker} for more information. Unavailable
      * to client-side requests, use {@link #ZIP_DEFLATE} instead.
      */
-    ZIP_DEFLATE_SINGLETHREADED(null, "zip"),
+    ZIP_DEFLATE_SINGLETHREADED(null, ZIP_DEFLATE.packedShortCode),
     /**
      * Packs data to a "deflate" compressed ZIP file multi-threaded. Result will
      * be compressed to roughly 44% of original size. See
      * {@link MultiThreadedZipDeflatePacker} for more information. Unavailable
      * to client-side requests, use {@link #ZIP_DEFLATE} instead.
      */
-    ZIP_DEFLATE_MULTITHREADED(null, "zip"),
+    ZIP_DEFLATE_MULTITHREADED(null, ZIP_DEFLATE.packedShortCode),
     /**
      * Packs data to an uncompressed TAR file, should only be used if resulting
      * size is no concern.
@@ -108,10 +108,15 @@ public enum PackerMethod {
     private final String packedShortCode;
 
     private static final Map<String, PackerMethod> BY_REQUEST_SHORT_CODE = new HashMap<>();
+    private static final Map<String, PackerMethod> BY_PACKED_SHORT_CODE = new HashMap<>();
 
     static {
         for (PackerMethod method : values()) {
             BY_REQUEST_SHORT_CODE.put(method.requestShortCode, method);
+
+            if (!method.aliasesOtherPackedShortCode()) {
+                BY_PACKED_SHORT_CODE.put(method.packedShortCode, method);
+            }
         }
     }
 
@@ -148,15 +153,69 @@ public enum PackerMethod {
      *
      * @param requestShortCode short code identifying requested method
      * @return matching method
-     * @throws IllegalArgumentException if short code is unknown
+     * @throws IllegalArgumentException if short code is unknown or null
      */
     public static PackerMethod byRequestShortCode(String requestShortCode) {
+        if (requestShortCode == null) {
+            throw new IllegalArgumentException("request short code must not be null");
+        }
+
         PackerMethod method = BY_REQUEST_SHORT_CODE.get(requestShortCode);
         if (method == null) {
             throw new IllegalArgumentException("unknown request short code \"" + requestShortCode + "\"");
         }
 
         return method;
+    }
+
+    /**
+     * Resolves the given short code used to identify a method used for packing.
+     *
+     * @param packedShortCode short code identifying method used for packing
+     * @return matching method
+     * @throws IllegalArgumentException if short code is unknown or null
+     */
+    public static PackerMethod byPackedShortCode(String packedShortCode) {
+        if (packedShortCode == null) {
+            throw new IllegalArgumentException("packed short code must not be null");
+        }
+
+        PackerMethod method = BY_PACKED_SHORT_CODE.get(packedShortCode);
+        if (method == null) {
+            throw new IllegalArgumentException("unknown packed short code \"" + packedShortCode + "\"");
+        }
+
+        return method;
+    }
+
+    /**
+     * Checks if this is a ZIP method.
+     *
+     * @return true if ZIP method, false if not
+     */
+    public boolean isZipMethod() {
+        return (this == ZIP_UNCOMPRESSED)
+                || (this == ZIP_DEFLATE)
+                || (this == ZIP_DEFLATE_SINGLETHREADED)
+                || (this == ZIP_DEFLATE_MULTITHREADED);
+    }
+
+    /**
+     * Checks if this method yields an uncompressed result.
+     *
+     * @return true if uncompressed, false if compressed
+     */
+    public boolean isUncompressed() {
+        return (this == ZIP_UNCOMPRESSED) || (this == TAR_UNCOMPRESSED);
+    }
+
+    /**
+     * Checks if this method aliases another method's packed short code.
+     *
+     * @return true if aliasing, false if not
+     */
+    private boolean aliasesOtherPackedShortCode() {
+        return (this == ZIP_DEFLATE_SINGLETHREADED) || (this == ZIP_DEFLATE_MULTITHREADED);
     }
 
 }
