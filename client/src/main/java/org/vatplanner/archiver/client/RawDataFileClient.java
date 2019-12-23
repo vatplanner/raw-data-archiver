@@ -37,7 +37,6 @@ public class RawDataFileClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawDataFile.class);
 
     private final Connection connection;
-    private final Channel channel;
     private final String exchange;
     private final Duration timeout = Duration.ofMinutes(2); // FIXME: make config option
 
@@ -55,13 +54,20 @@ public class RawDataFileClient {
         connection = connectionFactory.newConnection();
 
         exchange = config.getRequestsExchange();
-
-        channel = connection.createChannel();
-        channel.exchangeDeclarePassive(exchange); // passive: just check that the exchange exists
     }
 
     public CompletableFuture<Collection<RawDataFile>> request(PackerMethod packerMethod, Instant earliestFetchTime, Instant latestFetchTime, int fileLimit) {
         CompletableFuture<Collection<RawDataFile>> future = new CompletableFuture<>();
+
+        final Channel channel;
+        try {
+            channel = connection.createChannel();
+            channel.exchangeDeclarePassive(exchange); // passive: just check that the exchange exists
+        } catch (IOException ex) {
+            LOGGER.warn("Failed to open AMQP channel.", ex);
+            future.completeExceptionally(ex);
+            return future;
+        }
 
         // FIXME: extract class or method
         new Thread(() -> {
@@ -95,7 +101,6 @@ public class RawDataFileClient {
 
                 rpc.close();
                 channel.close();
-                connection.close();
 
                 Map<String, RawDataFile> rawDataFiles = new HashMap<>();
 
