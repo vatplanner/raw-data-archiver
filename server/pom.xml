@@ -21,9 +21,9 @@
         <!-- runtime dependencies -->
         <camel.version>3.0.0</camel.version>
         <jsonSimple.version>3.1.0</jsonSimple.version>
-        <quartz.version>2.2.3</quartz.version>
+        <quartz.version>2.3.2</quartz.version>
         <slf4j.version>1.7.25</slf4j.version>
-        <log4j.version>2.11.1</log4j.version>
+        <log4j.version>2.13.3</log4j.version>
         <compress.version>1.19</compress.version>
         <xz.version>1.8</xz.version>
     </properties>
