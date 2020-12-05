@@ -17,8 +17,7 @@ public class RawDataArchiverRouteBuilder extends RouteBuilder {
     private final CamelConfiguration config;
     private final CamelContext context;
 
-    public RawDataArchiverRouteBuilder(CamelContext context, CamelConfiguration config, Loader loader,
-        PackerFactory packerFactory) {
+    public RawDataArchiverRouteBuilder(CamelContext context, CamelConfiguration config, Loader loader, PackerFactory packerFactory) {
         super(context);
 
         this.context = context;

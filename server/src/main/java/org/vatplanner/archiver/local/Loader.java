@@ -439,8 +439,7 @@ public class Loader {
         return timestamp.atOffset(ZoneOffset.UTC).toLocalDate();
     }
 
-    private Collection<RawDataFile> loadFromTransitionalFiles(Instant earliestFetchTime, Instant latestFetchTime, int fileLimit)
-        throws IOException {
+    private Collection<RawDataFile> loadFromTransitionalFiles(Instant earliestFetchTime, Instant latestFetchTime, int fileLimit) throws IOException {
         // TODO: documentation, random order
 
         Map<Instant, RawDataFile> loaded = new HashMap<>();
@@ -576,8 +575,7 @@ public class Loader {
      * @return all files matching given time range in random order
      * @throws IOException
      */
-    private Collection<RawDataFile> loadFromTransitionedFile(LocalDate fetchDate, Instant earliestFetchTime, Instant latestFetchTime)
-        throws IOException {
+    private Collection<RawDataFile> loadFromTransitionedFile(LocalDate fetchDate, Instant earliestFetchTime, Instant latestFetchTime) throws IOException {
         Map<Instant, RawDataFile> loaded = new HashMap<>();
 
         File archiveFile = getTransitionedArchiveFile(fetchDate);
