@@ -1,8 +1,5 @@
 package org.vatplanner.archiver.remote;
 
-import org.vatplanner.archiver.common.RemoteMetaDataContainerJsonKey;
-import org.vatplanner.archiver.common.RemoteMetaDataFileJsonKey;
-import com.github.cliftonlabs.json_simple.JsonObject;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -10,7 +7,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.vatplanner.archiver.common.RawDataFile;
+import org.vatplanner.archiver.common.RemoteMetaDataContainerJsonKey;
+import org.vatplanner.archiver.common.RemoteMetaDataFileJsonKey;
+
+import com.github.cliftonlabs.json_simple.JsonObject;
 
 /**
  * Base class for {@link Packer}s storing content numerically enumerated with an
@@ -33,9 +35,9 @@ public abstract class AbstractIndexingPacker implements Packer {
     public static final String META_DATA_FILE_NAME = "meta.json";
 
     /**
-     * Returns the index addressing the given file in meta data. Unknown files
-     * are automatically assigned a new index number. Subsequent calls for the
-     * same file will yield the same index.
+     * Returns the index addressing the given file in meta data. Unknown files are
+     * automatically assigned a new index number. Subsequent calls for the same file
+     * will yield the same index.
      *
      * @param original file to look up from index
      * @return index number assigned to the file
@@ -47,9 +49,9 @@ public abstract class AbstractIndexingPacker implements Packer {
     }
 
     /**
-     * Returns a numeric file name for given file. Unknown files are
-     * automatically assigned a new index number/file name. Subsequent calls for
-     * the same file will yield the same index.
+     * Returns a numeric file name for given file. Unknown files are automatically
+     * assigned a new index number/file name. Subsequent calls for the same file
+     * will yield the same index.
      *
      * @param original file to look up from index and generate a name for
      * @return internal numeric file name
@@ -59,14 +61,14 @@ public abstract class AbstractIndexingPacker implements Packer {
     }
 
     /**
-     * Returns the JSON meta data as a byte array encoded in UTF8. No new files
-     * must be added to the index after calling this method. Encoded result will
-     * be cached and reused on consecutive calls. Yet unknown files will be
-     * indexed during creation of meta data.
+     * Returns the JSON meta data as a byte array encoded in UTF8. No new files must
+     * be added to the index after calling this method. Encoded result will be
+     * cached and reused on consecutive calls. Yet unknown files will be indexed
+     * during creation of meta data.
      *
      * @param originals original files to encode meta data for
-     * @return UTF8-encoded JSON meta data for given files; cached on
-     * consecutive calls
+     * @return UTF8-encoded JSON meta data for given files; cached on consecutive
+     *         calls
      */
     protected byte[] getMetaData(Collection<RawDataFile> originals) {
         synchronized (this) {
@@ -81,8 +83,8 @@ public abstract class AbstractIndexingPacker implements Packer {
     }
 
     /**
-     * Generates and encodes JSON meta data for the full container in UTF8.
-     * Unknown files will be indexed during creation of meta data.
+     * Generates and encodes JSON meta data for the full container in UTF8. Unknown
+     * files will be indexed during creation of meta data.
      *
      * @param originals original files to encode meta data for
      * @return UTF8-encoded JSON meta data for given files
@@ -117,8 +119,8 @@ public abstract class AbstractIndexingPacker implements Packer {
     }
 
     /**
-     * Stores the specified value to the given {@link JsonObject} if the value
-     * is not null. Nothing will be stored if the value is null.
+     * Stores the specified value to the given {@link JsonObject} if the value is
+     * not null. Nothing will be stored if the value is null.
      *
      * @param json JSON object to add value to
      * @param key key under which value should be stored

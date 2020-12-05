@@ -1,7 +1,7 @@
 package org.vatplanner.archiver.remote;
 
-import org.vatplanner.archiver.common.PackerMethod;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.vatplanner.archiver.common.PackerMethod;
 
 /**
  * Factory to more easily instantiate {@link Packer}s.
@@ -24,8 +24,8 @@ public class PackerFactory {
     public Packer createPacker(PackerMethod method) {
         if (method == PackerMethod.ZIP_DEFLATE) {
             method = configuration.shouldAutoSelectMultiThreading()
-                    ? PackerMethod.ZIP_DEFLATE_MULTITHREADED
-                    : PackerMethod.ZIP_DEFLATE_SINGLETHREADED;
+                ? PackerMethod.ZIP_DEFLATE_MULTITHREADED
+                : PackerMethod.ZIP_DEFLATE_SINGLETHREADED;
         }
 
         switch (method) {

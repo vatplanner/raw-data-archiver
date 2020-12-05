@@ -16,8 +16,8 @@ public class PackerConfiguration {
      * Determines if multi-threaded methods should be auto-selected in case no
      * threading has been specified explicitely.
      *
-     * @return true if multi-threading should be selected, false if
-     * single-threaded implementations should be used
+     * @return true if multi-threading should be selected, false if single-threaded
+     *         implementations should be used
      */
     public boolean shouldAutoSelectMultiThreading() {
         return autoSelectMultiThreading;
@@ -27,8 +27,8 @@ public class PackerConfiguration {
      * Sets whether multi-threaded implementations should be used in case not
      * threading has been specified explicitely.
      *
-     * @param autoSelectMultiThreading true if multi-threading should be
-     * selected, false if single-threaded implementations should be used
+     * @param autoSelectMultiThreading true if multi-threading should be selected,
+     *        false if single-threaded implementations should be used
      * @return this instance for method-chaining
      */
     public PackerConfiguration setAutoSelectMultiThreading(boolean autoSelectMultiThreading) {

@@ -1,21 +1,23 @@
 package org.vatplanner.archiver.camel;
 
-import com.github.cliftonlabs.json_simple.JsonObject;
-import com.github.cliftonlabs.json_simple.Jsoner;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vatplanner.archiver.common.DataFileRequestJsonKey;
+import org.vatplanner.archiver.common.PackerMethod;
 import org.vatplanner.archiver.common.RawDataFile;
 import org.vatplanner.archiver.local.Loader;
 import org.vatplanner.archiver.remote.Packer;
 import org.vatplanner.archiver.remote.PackerFactory;
-import org.vatplanner.archiver.common.PackerMethod;
+
+import com.github.cliftonlabs.json_simple.JsonObject;
+import com.github.cliftonlabs.json_simple.Jsoner;
 
 /**
  * Processes requests for raw data files.
@@ -40,19 +42,24 @@ public class DataFileRequestProcessor implements Processor {
         JsonObject json = Jsoner.deserialize(body, new JsonObject());
 
         // read request configuration
-        PackerMethod packerMethod = PackerMethod.byRequestShortCode(json.getString(DataFileRequestJsonKey.PACKER_METHOD));
+        PackerMethod packerMethod = PackerMethod.byRequestShortCode(
+            json.getString(DataFileRequestJsonKey.PACKER_METHOD) //
+        );
         Instant earliestFetchTime = Instant.parse(json.getString(DataFileRequestJsonKey.EARLIEST_FETCH_TIME));
         Instant latestFetchTime = Instant.parse(json.getString(DataFileRequestJsonKey.LATEST_FETCH_TIME));
         int fileLimit = json.getIntegerOrDefault(DataFileRequestJsonKey.FILE_LIMIT);
 
-        LOGGER.info("Processing data file request: earliest {}, latest {}, packer {}, file limit {}", earliestFetchTime, latestFetchTime, packerMethod, fileLimit);
+        LOGGER.info(
+            "Processing data file request: earliest {}, latest {}, packer {}, file limit {}",
+            earliestFetchTime, latestFetchTime, packerMethod, fileLimit //
+        );
 
         // load data
         Instant beforeLoading = Instant.now();
         List<RawDataFile> loaded = loader.load(
-                earliestFetchTime,
-                latestFetchTime,
-                fileLimit
+            earliestFetchTime,
+            latestFetchTime,
+            fileLimit //
         );
         Instant afterLoading = Instant.now();
 
@@ -63,13 +70,13 @@ public class DataFileRequestProcessor implements Processor {
         Instant afterPacking = Instant.now();
 
         LOGGER.info(
-                "Finished data file request: earliest {}, latest {}, packer {}, file limit {} [{} files, loaded {}ms, packed {}ms, total {}ms, size {}kB]",
-                earliestFetchTime, latestFetchTime, packerMethod, fileLimit,
-                loaded.size(),
-                Duration.between(beforeLoading, afterLoading).toMillis(),
-                Duration.between(beforePacking, afterPacking).toMillis(),
-                Duration.between(beforeLoading, afterPacking).toMillis(),
-                packed.length / 1024
+            "Finished data file request: earliest {}, latest {}, packer {}, file limit {} [{} files, loaded {}ms, packed {}ms, total {}ms, size {}kB]",
+            earliestFetchTime, latestFetchTime, packerMethod, fileLimit,
+            loaded.size(),
+            Duration.between(beforeLoading, afterLoading).toMillis(),
+            Duration.between(beforePacking, afterPacking).toMillis(),
+            Duration.between(beforeLoading, afterPacking).toMillis(),
+            packed.length / 1024 //
         );
 
         // assemble response message

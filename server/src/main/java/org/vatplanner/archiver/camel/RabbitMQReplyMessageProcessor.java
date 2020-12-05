@@ -1,6 +1,7 @@
 package org.vatplanner.archiver.camel;
 
 import java.util.Map;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
@@ -41,7 +42,7 @@ public class RabbitMQReplyMessageProcessor implements Processor {
         out.removeHeader("rabbitmq.EXPIRATION");
 
         // force default exchange, workaround for bug CAMEL-8270
-        //out.setHeader("rabbitmq.EXCHANGE_NAME", "");
+        // out.setHeader("rabbitmq.EXCHANGE_NAME", "");
         // default exchange routes messages to queue = routing_key
         String replyQueueName = (String) headersIn.getOrDefault("rabbitmq.REPLY_TO", "amq.rabbitmq.reply-to");
         out.setHeader("rabbitmq.ROUTING_KEY", replyQueueName);

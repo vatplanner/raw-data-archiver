@@ -1,12 +1,5 @@
 package org.vatplanner.archiver.client;
 
-import com.github.cliftonlabs.json_simple.JsonObject;
-import com.github.cliftonlabs.json_simple.Jsoner;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.RpcClient;
-import com.rabbitmq.client.RpcClientParams;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -18,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
+
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
@@ -30,6 +24,14 @@ import org.vatplanner.archiver.common.PackerMethod;
 import org.vatplanner.archiver.common.RawDataFile;
 import org.vatplanner.archiver.common.RemoteMetaDataContainerJsonKey;
 import org.vatplanner.archiver.common.RemoteMetaDataFileJsonKey;
+
+import com.github.cliftonlabs.json_simple.JsonObject;
+import com.github.cliftonlabs.json_simple.Jsoner;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.RpcClient;
+import com.rabbitmq.client.RpcClientParams;
 
 public class RawDataFileClient {
     // FIXME: quick naive implementation for testing only, requires full overhaul
@@ -72,45 +74,62 @@ public class RawDataFileClient {
         // FIXME: extract class or method
         new Thread(() -> {
             try {
-                RpcClient rpc = new RpcClient(new RpcClientParams()
+                RpcClient rpc = new RpcClient(
+                    new RpcClientParams()
                         .channel(channel)
                         .exchange(exchange)
                         .timeout((int) timeout.toMillis())
                         .routingKey("")
-                        .useMandatory()
+                        .useMandatory() //
                 );
 
                 JsonObject jsonRequest = new JsonObject();
                 jsonRequest
-                        .putChain(DataFileRequestJsonKey.EARLIEST_FETCH_TIME.getKey(), earliestFetchTime.toString())
-                        .putChain(DataFileRequestJsonKey.LATEST_FETCH_TIME.getKey(), latestFetchTime.toString())
-                        .putChain(DataFileRequestJsonKey.PACKER_METHOD.getKey(), packerMethod.getRequestShortCode())
-                        .putChain(DataFileRequestJsonKey.FILE_LIMIT.getKey(), fileLimit);
+                    .putChain(DataFileRequestJsonKey.EARLIEST_FETCH_TIME.getKey(), earliestFetchTime.toString())
+                    .putChain(DataFileRequestJsonKey.LATEST_FETCH_TIME.getKey(), latestFetchTime.toString())
+                    .putChain(DataFileRequestJsonKey.PACKER_METHOD.getKey(), packerMethod.getRequestShortCode())
+                    .putChain(DataFileRequestJsonKey.FILE_LIMIT.getKey(), fileLimit);
 
                 String jsonRequestString = jsonRequest.toJson();
                 LOGGER.debug("sending RPC request to AMQP: {}", jsonRequestString);
                 RpcClient.Response response = rpc.responseCall(jsonRequestString.getBytes());
 
                 // FIXME: use server-submitted header for packer method
-                String responsePackerMethodString = (String) response.getProperties().getHeaders().getOrDefault("packerMethod", packerMethod.getPackedShortCode());
+                String responsePackerMethodString = (String) response.getProperties()
+                    .getHeaders()
+                    .getOrDefault("packerMethod", packerMethod.getPackedShortCode());
                 byte[] responseBody = response.getBody();
-                LOGGER.debug("AMQP RPC response arrived, packer method {}, encoded length {}", responsePackerMethodString, responseBody.length);
+                LOGGER.debug(
+                    "AMQP RPC response arrived, packer method {}, encoded length {}",
+                    responsePackerMethodString,
+                    responseBody.length //
+                );
                 PackerMethod responsePackerMethod = PackerMethod.byPackedShortCode(responsePackerMethodString);
                 BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(responseBody));
-                responseBody = null; // FIXME: do not save byte[] to variable, just forward to BAIS if debug output no longer needed
+                /*
+                 * FIXME: do not save byte[] to variable, just forward to BAIS if debug output
+                 * no longer needed
+                 */
+                responseBody = null;
 
                 rpc.close();
                 channel.close();
 
                 Map<String, RawDataFile> rawDataFiles = new HashMap<>();
 
-                boolean needsExplicitDecompression = !(responsePackerMethod.isUncompressed() || responsePackerMethod.isZipMethod());
+                boolean needsExplicitDecompression = //
+                    !(responsePackerMethod.isUncompressed() || responsePackerMethod.isZipMethod());
                 if (needsExplicitDecompression) {
                     try {
                         CompressorInputStream cis = new CompressorStreamFactory().createCompressorInputStream(bis);
                         bis = new BufferedInputStream(cis);
                     } catch (Exception ex) {
-                        throw new RuntimeException("response packer method " + responsePackerMethod + " requires explicit decompression but setting up stream failed", ex);
+                        throw new RuntimeException(
+                            "response packer method "
+                                + responsePackerMethod
+                                + " requires explicit decompression but setting up stream failed",
+                            ex //
+                        );
                     }
                 }
                 ArchiveInputStream ais = new ArchiveStreamFactory().createArchiveInputStream(bis);
@@ -136,11 +155,22 @@ public class RawDataFileClient {
                         Map<String, JsonObject> fileMetas = meta.getMapOrDefault(RemoteMetaDataContainerJsonKey.FILES);
                         for (Map.Entry<String, JsonObject> fileMeta : fileMetas.entrySet()) {
                             String fileName = fileMeta.getKey();
-                            RawDataFile rawDataFile = rawDataFiles.computeIfAbsent(fileName, n -> new RawDataFile(null));
-                            rawDataFile.setFetchTime(Instant.parse(fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_TIME)));
-                            rawDataFile.setFetchNode(fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_NODE));
-                            rawDataFile.setFetchUrlRequested(fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_URL_REQUESTED));
-                            rawDataFile.setFetchUrlRetrieved(fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_URL_RETRIEVED));
+                            RawDataFile rawDataFile = rawDataFiles.computeIfAbsent(
+                                fileName,
+                                n -> new RawDataFile(null) //
+                            );
+                            rawDataFile.setFetchTime(Instant.parse(
+                                fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_TIME) //
+                            ));
+                            rawDataFile.setFetchNode(
+                                fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_NODE) //
+                            );
+                            rawDataFile.setFetchUrlRequested(
+                                fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_URL_REQUESTED) //
+                            );
+                            rawDataFile.setFetchUrlRetrieved(
+                                fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_URL_RETRIEVED) //
+                            );
                         }
                     } else {
                         RawDataFile rawDataFile = rawDataFiles.computeIfAbsent(name, n -> new RawDataFile(null));

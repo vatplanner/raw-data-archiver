@@ -86,8 +86,8 @@ public class RawDataFile {
      * Returns the fetched data.
      *
      * @return fetched data
-     * @throws RuntimeException if {@link #clear()} has been called to evict
-     * data from memory
+     * @throws RuntimeException if {@link #clear()} has been called to evict data
+     *         from memory
      */
     public byte[] getData() {
         if (isCleared) {
@@ -99,7 +99,9 @@ public class RawDataFile {
 
     public RawDataFile setData(byte[] data) {
         if (isCleared) {
-            throw new RuntimeException("recycling partially evicted instances seems like an error and thus is not allowed");
+            throw new RuntimeException(
+                "recycling partially evicted instances seems like an error and thus is not allowed" //
+            );
         }
 
         this.data = data;

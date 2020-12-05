@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 import java.util.zip.ZipEntry;
+
 import org.apache.commons.compress.archivers.zip.ParallelScatterZipCreator;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntryRequest;
@@ -40,7 +41,10 @@ public class MultiThreadedZipDeflatePacker extends AbstractZipPacker {
         zipCreator.addArchiveEntry(() -> {
             ZipArchiveEntry metaDataEntry = createMetaDataEntry(originals);
             byte[] data = getMetaData(originals);
-            return ZipArchiveEntryRequest.createZipArchiveEntryRequest(metaDataEntry, () -> new ByteArrayInputStream(data));
+            return ZipArchiveEntryRequest.createZipArchiveEntryRequest(
+                metaDataEntry,
+                () -> new ByteArrayInputStream(data) //
+            );
         });
 
         // store all content

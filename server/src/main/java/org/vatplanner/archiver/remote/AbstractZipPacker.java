@@ -3,6 +3,7 @@ package org.vatplanner.archiver.remote;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
@@ -26,16 +27,16 @@ public abstract class AbstractZipPacker extends AbstractIndexingPacker {
     private SeekableInMemoryByteChannel channel;
 
     /**
-     * Configures expected total file size ratio and storage method. The ratio
-     * will be used to pre-allocate memory to write the resulting ZIP file to.
-     * It is important to provide a slightly higher estimation than actually
-     * expected since resizing the underlying in-memory implementation
-     * {@link SeekableInMemoryByteChannel} has a heavy performance impact and
-     * should be avoided if many files are to be added (as is the case in this
+     * Configures expected total file size ratio and storage method. The ratio will
+     * be used to pre-allocate memory to write the resulting ZIP file to. It is
+     * important to provide a slightly higher estimation than actually expected
+     * since resizing the underlying in-memory implementation
+     * {@link SeekableInMemoryByteChannel} has a heavy performance impact and should
+     * be avoided if many files are to be added (as is the case in this
      * application).
      *
-     * @param expectedRatio expected ratio of output size compared to input;
-     * should be higher than actual
+     * @param expectedRatio expected ratio of output size compared to input; should
+     *        be higher than actual
      * @param method method to store files with, see {@link ZipArchiveEntry}
      */
     public AbstractZipPacker(double expectedRatio, int method) {
@@ -47,8 +48,7 @@ public abstract class AbstractZipPacker extends AbstractIndexingPacker {
      * Starts a new ZIP stream configured to use requested storage method and
      * creates a new in-memory channel to store the result in.
      *
-     * @param originals files to be stored; used to calculate required memory
-     * size
+     * @param originals files to be stored; used to calculate required memory size
      * @return open ZIP stream ready to encode data
      * @throws IOException
      */
@@ -79,9 +79,9 @@ public abstract class AbstractZipPacker extends AbstractIndexingPacker {
 
     /**
      * Creates a new archive entry to store the given file. This only sets and
-     * provides archive meta data required to index data within the ZIP file.
-     * Actual data needs to be written separate from this method call; how that
-     * is to be done depends on the specific API.
+     * provides archive meta data required to index data within the ZIP file. Actual
+     * data needs to be written separate from this method call; how that is to be
+     * done depends on the specific API.
      *
      * @param original original file to create archive entry for
      * @return archive entry for given file
@@ -99,14 +99,13 @@ public abstract class AbstractZipPacker extends AbstractIndexingPacker {
 
     /**
      * Creates the archive entry to address the application JSON meta data file.
-     * This only sets and provides archive meta data required to index data
-     * within the ZIP file. Actual data needs to be written separate from this
-     * method call; how that is to be done depends on the specific API.
+     * This only sets and provides archive meta data required to index data within
+     * the ZIP file. Actual data needs to be written separate from this method call;
+     * how that is to be done depends on the specific API.
      *
      * <p>
-     * No further files must be indexed after calling this method as it
-     * finalizes the JSON meta data; see {@link AbstractIndexingPacker} for
-     * details.
+     * No further files must be indexed after calling this method as it finalizes
+     * the JSON meta data; see {@link AbstractIndexingPacker} for details.
      * </p>
      *
      * @param originals all data files being stored in the ZIP file

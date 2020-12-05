@@ -1,14 +1,21 @@
 package org.vatplanner.archiver.remote;
 
-import org.vatplanner.archiver.common.PackerMethod;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import static com.tngtech.java.junit.dataprovider.DataProviders.crossProduct;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.sameInstance;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.vatplanner.archiver.common.PackerMethod;
+
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 
 @RunWith(DataProviderRunner.class)
 public class PackerFactoryTest {
@@ -27,21 +34,21 @@ public class PackerFactoryTest {
 
     @DataProvider
     public static Object[][] dataProviderTarMethods() {
-        return new Object[][]{
-            {PackerMethod.TAR_BZIP2},
-            {PackerMethod.TAR_DEFLATE},
-            {PackerMethod.TAR_GZIP},
-            {PackerMethod.TAR_LZMA},
-            {PackerMethod.TAR_UNCOMPRESSED},
-            {PackerMethod.TAR_XZ}
+        return new Object[][] {
+            { PackerMethod.TAR_BZIP2 },
+            { PackerMethod.TAR_DEFLATE },
+            { PackerMethod.TAR_GZIP },
+            { PackerMethod.TAR_LZMA },
+            { PackerMethod.TAR_UNCOMPRESSED },
+            { PackerMethod.TAR_XZ }
         };
     }
 
     @DataProvider
     public static Object[][] dataProviderBooleans() {
-        return new Object[][]{
-            {true},
-            {false}
+        return new Object[][] {
+            { true },
+            { false }
         };
     }
 
@@ -97,7 +104,7 @@ public class PackerFactoryTest {
     }
 
     @Test
-    @DataProvider({"true", "false"})
+    @DataProvider({ "true", "false" })
     public void testCreatePacker_zipUncompressed_returnsUncompressedZipPacker(boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
@@ -110,7 +117,7 @@ public class PackerFactoryTest {
     }
 
     @Test
-    @DataProvider({"true", "false"})
+    @DataProvider({ "true", "false" })
     public void testCreatePacker_zipDeflateSingleThreaded_returnsSingleThreadedZipDeflatePacker(boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
@@ -123,7 +130,7 @@ public class PackerFactoryTest {
     }
 
     @Test
-    @DataProvider({"true", "false"})
+    @DataProvider({ "true", "false" })
     public void testCreatePacker_zipDeflateMultiThreaded_returnsMultiThreadedZipDeflatePacker(boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
@@ -174,8 +181,8 @@ public class PackerFactoryTest {
 
     private PackerFactory createFactory(boolean autoSelectMultiThreading) {
         return new PackerFactory(
-                new PackerConfiguration()
-                        .setAutoSelectMultiThreading(autoSelectMultiThreading)
+            new PackerConfiguration()
+                .setAutoSelectMultiThreading(autoSelectMultiThreading) //
         );
     }
 }

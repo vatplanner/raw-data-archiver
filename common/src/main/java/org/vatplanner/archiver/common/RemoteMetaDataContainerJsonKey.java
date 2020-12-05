@@ -1,9 +1,10 @@
 package org.vatplanner.archiver.common;
 
-import com.github.cliftonlabs.json_simple.JsonKey;
-import com.github.cliftonlabs.json_simple.JsonObject;
 import java.util.Collections;
 import java.util.HashMap;
+
+import com.github.cliftonlabs.json_simple.JsonKey;
+import com.github.cliftonlabs.json_simple.JsonObject;
 
 /**
  * {@link JsonKey}s to address generic (container) meta data in remote packed
@@ -11,15 +12,17 @@ import java.util.HashMap;
  */
 public enum RemoteMetaDataContainerJsonKey implements JsonKey {
     /**
-     * Version of packed data format. Only to be incremented if incompatible
-     * with previous versions.
+     * Version of packed data format. Only to be incremented if incompatible with
+     * previous versions.
      */
     FORMAT_VERSION("formatVersion"),
+
     /**
      * Description of packed files. What's the content, how are the files to be
      * interpreted?
      */
     CONTENT("content"),
+
     /**
      * Meta data for all files in this container, indexed by file name used in
      * container.

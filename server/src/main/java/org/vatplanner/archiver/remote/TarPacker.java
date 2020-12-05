@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
+
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.CompressorException;
@@ -28,17 +29,19 @@ public class TarPacker extends AbstractIndexingPacker {
     }
 
     /**
-     * Creates a new packer for a TAR file applying specified compression
-     * algorithm. Compression is provided by Apache Commons Compress, see
+     * Creates a new packer for a TAR file applying specified compression algorithm.
+     * Compression is provided by Apache Commons Compress, see
      * {@link CompressorStreamFactory} for a list of available algorithms.
      *
      * @param compressionAlgorithm compression algorithm to apply, see
-     * {@link CompressorStreamFactory}; uncompressed if null
-     * @throws IllegalArgumentException if selected algorithm is not supported
-     * for encoding
+     *        {@link CompressorStreamFactory}; uncompressed if null
+     * @throws IllegalArgumentException if selected algorithm is not supported for
+     *         encoding
      */
     public TarPacker(String compressionAlgorithm) {
-        if ((compressionAlgorithm != null) && !compressorStreamFactory.getOutputStreamCompressorNames().contains(compressionAlgorithm)) {
+        if ((compressionAlgorithm != null)
+            && !compressorStreamFactory.getOutputStreamCompressorNames().contains(compressionAlgorithm) //
+        ) {
             throw new IllegalArgumentException("Unknown or unsupported compression algorithm: " + compressionAlgorithm);
         }
 
@@ -66,9 +69,9 @@ public class TarPacker extends AbstractIndexingPacker {
     }
 
     /**
-     * Creates a new TAR archive stream on given {@link OutputStream} and writes
-     * all data into the archive. Archive stream will be closed at the end of
-     * this method.
+     * Creates a new TAR archive stream on given {@link OutputStream} and writes all
+     * data into the archive. Archive stream will be closed at the end of this
+     * method.
      *
      * @param originals data to be archived
      * @param os underlying {@link OutputStream} to write archive into

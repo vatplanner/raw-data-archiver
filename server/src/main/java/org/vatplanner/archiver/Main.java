@@ -31,7 +31,9 @@ public class Main {
         try {
             LOGGER.info("Configuring Camel...");
             camelContext = new DefaultCamelContext();
-            camelContext.addRoutes(new RawDataArchiverRouteBuilder(camelContext, config.getCamelConfig(), loader, packerFactory));
+            camelContext.addRoutes(
+                new RawDataArchiverRouteBuilder(camelContext, config.getCamelConfig(), loader, packerFactory) //
+            );
 
             LOGGER.info("Starting Camel...");
             camelContext.start();

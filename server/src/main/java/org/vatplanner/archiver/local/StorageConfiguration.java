@@ -4,6 +4,7 @@ import java.io.File;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.ZoneId;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +24,8 @@ public class StorageConfiguration {
     private ZoneId transitionTimeZone;
 
     /**
-     * Returns the maximum number of data files allowed to be loaded into memory
-     * per request.
+     * Returns the maximum number of data files allowed to be loaded into memory per
+     * request.
      *
      * @return maximum number of data files allowed to load per request
      */
@@ -39,10 +40,10 @@ public class StorageConfiguration {
     }
 
     /**
-     * Returns the root directory holding all transitional (not transitioned)
-     * single files. Expected storage structure beneath this directory are only
-     * files named by UTC timestamp and _meta.json or _vatsim-data.txt suffix
-     * with according content.
+     * Returns the root directory holding all transitional (not transitioned) single
+     * files. Expected storage structure beneath this directory are only files named
+     * by UTC timestamp and _meta.json or _vatsim-data.txt suffix with according
+     * content.
      *
      * @return directory holding all transitional single files
      */
@@ -58,8 +59,7 @@ public class StorageConfiguration {
 
     /**
      * Returns the root directory holding all archived (transitioned) files.
-     * Expected storage structure beneath this directory is:
-     * YYYY/MM/YYYYMMDD.tar.xz
+     * Expected storage structure beneath this directory is: YYYY/MM/YYYYMMDD.tar.xz
      *
      * @return directory holding all archives
      */
@@ -75,9 +75,8 @@ public class StorageConfiguration {
 
     /**
      * Returns the daily local time at which transition from single files to
-     * archives is expected to be performed. Transition is triggered by a Cron
-     * job, so the returned time is local to the system performing the
-     * compression.
+     * archives is expected to be performed. Transition is triggered by a Cron job,
+     * so the returned time is local to the system performing the compression.
      *
      * @return daily local time at which transition is supposed to happen
      * @see TransitionChecker
@@ -93,9 +92,9 @@ public class StorageConfiguration {
     }
 
     /**
-     * Returns the time before scheduled start of transition from single files
-     * to archives at which processes should start to back off from
-     * to-be-compressed files.
+     * Returns the time before scheduled start of transition from single files to
+     * archives at which processes should start to back off from to-be-compressed
+     * files.
      *
      * @return time to start backing off from to-be-compressed files
      * @see TransitionChecker
@@ -113,11 +112,11 @@ public class StorageConfiguration {
     /**
      * Returns the time after scheduled start of transition from single files to
      * archives at which processes should still back off from to-be-compressed
-     * files. Since previous-day data was to be compressed, that archive is also
-     * not to be accessed during this time period.
+     * files. Since previous-day data was to be compressed, that archive is also not
+     * to be accessed during this time period.
      *
-     * @return time after start of transition to keep off to-be-compressed files
-     * and previous-day archive
+     * @return time after start of transition to keep off to-be-compressed files and
+     *         previous-day archive
      * @see TransitionChecker
      */
     public Duration getTransitionCooldown() {
@@ -131,8 +130,8 @@ public class StorageConfiguration {
     }
 
     /**
-     * Returns the time zone applicable to the system in charge of performing
-     * the transition from single files to archives.
+     * Returns the time zone applicable to the system in charge of performing the
+     * transition from single files to archives.
      *
      * @return time zone of system performing transition
      * @see TransitionChecker

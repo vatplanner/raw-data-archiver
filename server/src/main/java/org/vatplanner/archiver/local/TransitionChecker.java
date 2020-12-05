@@ -44,29 +44,28 @@ public class TransitionChecker {
     }
 
     /**
-     * Calculates if data fetched at given date is still in single-file
-     * transitional state or has already been archived.
+     * Calculates if data fetched at given date is still in single-file transitional
+     * state or has already been archived.
      *
      * <p>
-     * Note that the calculated expectation may not match actual state on
-     * storage.
+     * Note that the calculated expectation may not match actual state on storage.
      * </p>
      *
      * @param fetchDate date at which data has been fetched
-     * @return true if data for specified date is still in single-file
-     * transitional state, false if it has been archived already
+     * @return true if data for specified date is still in single-file transitional
+     *         state, false if it has been archived already
      */
     public boolean isTransitional(LocalDate fetchDate) {
         return getNow().isBefore(getTransitionStart(fetchDate));
     }
 
     /**
-     * Calculates if data fetched at given date is currently in transition and
-     * must not be accessed to protect the archival process.
+     * Calculates if data fetched at given date is currently in transition and must
+     * not be accessed to protect the archival process.
      *
      * @param fetchDate date at which data has been fetched
-     * @return true if transition is currently being performed and data must not
-     * be accessed, false if data is supposed to be accessible
+     * @return true if transition is currently being performed and data must not be
+     *         accessed, false if data is supposed to be accessible
      */
     public boolean shouldBackOff(LocalDate fetchDate) {
         Instant transitionStart = getTransitionStart(fetchDate);
@@ -78,19 +77,19 @@ public class TransitionChecker {
     }
 
     /**
-     * Calculates the start of transition process for data fetched at given
-     * date.
+     * Calculates the start of transition process for data fetched at given date.
      *
      * @param fetchDate date at which data has been fetched
      * @return start timestamp of transition process
      */
     private Instant getTransitionStart(LocalDate fetchDate) {
-        // TODO: test what happens at impossible times (transition scheduled during DST change day for skipped hour)
+        // TODO: test what happens at impossible times (transition scheduled during DST
+        // change day for skipped hour)
         return fetchDate
-                .plusDays(1)
-                .atTime(dailyStartTime)
-                .atZone(timeZone)
-                .toInstant();
+            .plusDays(1)
+            .atTime(dailyStartTime)
+            .atZone(timeZone)
+            .toInstant();
     }
 
     // FIXME: unit test

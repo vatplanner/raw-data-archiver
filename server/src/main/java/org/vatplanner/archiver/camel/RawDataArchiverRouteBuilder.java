@@ -17,7 +17,8 @@ public class RawDataArchiverRouteBuilder extends RouteBuilder {
     private final CamelConfiguration config;
     private final CamelContext context;
 
-    public RawDataArchiverRouteBuilder(CamelContext context, CamelConfiguration config, Loader loader, PackerFactory packerFactory) {
+    public RawDataArchiverRouteBuilder(CamelContext context, CamelConfiguration config, Loader loader,
+        PackerFactory packerFactory) {
         super(context);
 
         this.context = context;
@@ -53,21 +54,24 @@ public class RawDataArchiverRouteBuilder extends RouteBuilder {
         amqpOutDirect.setExchangePattern(ExchangePattern.InOnly);
 
         // incoming requests
-        RabbitMQEndpoint amqpInRequests = (RabbitMQEndpoint) context.getEndpoint(baseURL + config.getRequestsExchange());
+        RabbitMQEndpoint amqpInRequests = (RabbitMQEndpoint) context.getEndpoint(
+            baseURL + config.getRequestsExchange() //
+        );
         configureCommonSettings(amqpInRequests);
         amqpInRequests.setExchangeType("direct");
         amqpInRequests.setConcurrentConsumers(config.getRequestsConsumers());
         amqpInRequests.setDeclare(true);
-        amqpInRequests.setAutoAck(true); // if we crash, processing should NOT be retried as it would likely be reproduceable and cause DoS
+        amqpInRequests.setAutoAck(true); // if we crash, processing should NOT be retried as it would likely be
+                                         // reproduceable and cause DoS
         amqpInRequests.setAutoDelete(false);
         amqpInRequests.setQueue(config.getRequestsQueue());
         amqpInRequests.getArgs().put("arg.queue.x-message-ttl", config.getRequestsQueueTTL().toMillis()); // TODO: test
 
         DataFileRequestProcessor dataFileRequestProcessor = new DataFileRequestProcessor(loader, packerFactory);
         from(amqpInRequests)
-                .process(dataFileRequestProcessor)
-                .process(RabbitMQReplyMessageProcessor.getInstance())
-                .to(ExchangePattern.InOnly, amqpOutDirect);
+            .process(dataFileRequestProcessor)
+            .process(RabbitMQReplyMessageProcessor.getInstance())
+            .to(ExchangePattern.InOnly, amqpOutDirect);
 
         // TODO: test response to RPC
     }

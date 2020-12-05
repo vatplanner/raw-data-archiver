@@ -1,7 +1,6 @@
 package org.vatplanner.archiver.common;
 
 import com.github.cliftonlabs.json_simple.JsonKey;
-import org.vatplanner.archiver.common.RawDataFile;
 
 /**
  * {@link JsonKey}s to address meta data for a single file in remote packed
@@ -14,6 +13,7 @@ public enum RemoteMetaDataFileJsonKey implements JsonKey {
      * @see RawDataFile#getFetchTime()
      */
     FETCH_TIME("fetchTime"),
+
     /**
      * Holds the original URL requested to retrieve fetched data from (before
      * following redirects).
@@ -21,6 +21,7 @@ public enum RemoteMetaDataFileJsonKey implements JsonKey {
      * @see RawDataFile#getFetchUrlRequested()
      */
     FETCH_URL_REQUESTED("fetchUrlRequested"),
+
     /**
      * Holds the actual URL where fetched data had been retrieved from (after
      * following redirects).
@@ -28,6 +29,7 @@ public enum RemoteMetaDataFileJsonKey implements JsonKey {
      * @see RawDataFile#getFetchUrlRetrieved()
      */
     FETCH_URL_RETRIEVED("fetchUrlRetrieved"),
+
     /**
      * Holds the identification of the node who has fetched the data.
      *

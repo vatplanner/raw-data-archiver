@@ -1,8 +1,5 @@
 package org.vatplanner.archiver.local;
 
-import com.github.cliftonlabs.json_simple.JsonException;
-import com.github.cliftonlabs.json_simple.JsonObject;
-import com.github.cliftonlabs.json_simple.Jsoner;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,6 +25,7 @@ import java.util.OptionalInt;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
@@ -36,6 +34,10 @@ import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vatplanner.archiver.common.RawDataFile;
+
+import com.github.cliftonlabs.json_simple.JsonException;
+import com.github.cliftonlabs.json_simple.JsonObject;
+import com.github.cliftonlabs.json_simple.Jsoner;
 
 /**
  * Loads previously fetched data from storage back into memory.
@@ -84,7 +86,9 @@ public class Loader {
     private final CompressorStreamFactory compressorStreamFactory = new CompressorStreamFactory();
     private final ArchiveStreamFactory archiveStreamFactory = new ArchiveStreamFactory();
 
-    private static final Pattern PATTERN_FETCHED_FILENAME = Pattern.compile("^(\\d{4})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3])([0-5][0-9])([0-5][0-9])Z_.*");
+    private static final Pattern PATTERN_FETCHED_FILENAME = Pattern.compile(
+        "^(\\d{4})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3])([0-5][0-9])([0-5][0-9])Z_.*" //
+    );
     private static final int PATTERN_FETCHED_FILENAME_YEAR = 1;
     private static final int PATTERN_FETCHED_FILENAME_MONTH = 2;
     private static final int PATTERN_FETCHED_FILENAME_DAY = 3;
@@ -96,7 +100,9 @@ public class Loader {
 
     private static final Pattern PATTERN_DIRECTORY_MONTH = Pattern.compile("^(0[1-9]|1[0-2])$");
 
-    private static final Pattern PATTERN_ARCHIVE = Pattern.compile("^(\\d{4})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])\\.tar\\.xz$");
+    private static final Pattern PATTERN_ARCHIVE = Pattern.compile(
+        "^(\\d{4})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])\\.tar\\.xz$" //
+    );
     private static final int PATTERN_ARCHIVE_DAY = 3;
 
     private static final DateTimeFormatter FORMATTER_ARCHIVE_NAME = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -104,7 +110,9 @@ public class Loader {
 
     private static final int MAXIMUM_LOCAL_DATE_YEAR = 9999; // live long and prosper...
     private static final Instant MINIMUM_LOCAL_DATE_INSTANT = Instant.EPOCH;
-    private static final Instant MAXIMUM_LOCAL_DATE_INSTANT = ZonedDateTime.of(MAXIMUM_LOCAL_DATE_YEAR, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")).toInstant();
+    private static final Instant MAXIMUM_LOCAL_DATE_INSTANT = ZonedDateTime.of(
+        MAXIMUM_LOCAL_DATE_YEAR, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC") //
+    ).toInstant();
 
     private static final Charset CHARACTER_SET_META_DATA = StandardCharsets.UTF_8;
 
@@ -124,38 +132,45 @@ public class Loader {
      * @param earliestFetchTime earliest fetch time to include in result
      * @param latestFetchTime latest fetch time to include in result
      * @return at most the configured number of files fetched between given
-     * timestamps (ascending order); null on error
+     *         timestamps (ascending order); null on error
      */
     public List<RawDataFile> load(Instant earliestFetchTime, Instant latestFetchTime) {
         return load(earliestFetchTime, latestFetchTime, maximumDataFilesPerRequest);
     }
 
     /**
-     * Loads and returns all data fetched between given timestamps. The
-     * specified maximum number of files is only effective if it is less than
-     * the hard maximum limit specified in application configuration. The result
-     * is ordered by oldest fetched entry first.
+     * Loads and returns all data fetched between given timestamps. The specified
+     * maximum number of files is only effective if it is less than the hard maximum
+     * limit specified in application configuration. The result is ordered by oldest
+     * fetched entry first.
      *
      * @param earliestFetchTime earliest fetch time to include in result
      * @param latestFetchTime latest fetch time to include in result
-     * @param fileLimit maximum number of files to be returned; may be
-     * restricted further by configuration
+     * @param fileLimit maximum number of files to be returned; may be restricted
+     *        further by configuration
      * @return at most the requested number of files fetched between given
-     * timestamps (ascending order); null on error
+     *         timestamps (ascending order); null on error
      */
     public List<RawDataFile> load(Instant earliestFetchTime, Instant latestFetchTime, int fileLimit) {
         // TODO: catch IOException, log and return null instead
 
         int remainingFileLimit = Integer.min(fileLimit, maximumDataFilesPerRequest);
 
-        LOGGER.debug("Loading at most {} files (requested {}) fetched between {} and {}", remainingFileLimit, fileLimit, earliestFetchTime, latestFetchTime);
+        LOGGER.debug(
+            "Loading at most {} files (requested {}) fetched between {} and {}",
+            remainingFileLimit, fileLimit, earliestFetchTime, latestFetchTime //
+        );
 
         List<RawDataFile> loaded = new ArrayList<>();
 
         try {
             LocalDate transitionedFetchDate = findEffectiveEarliestTransitionedFetchDate(earliestFetchTime);
             while ((remainingFileLimit > 0) && shouldLoadFromTransitionedFile(transitionedFetchDate, latestFetchTime)) {
-                Collection<RawDataFile> dataFiles = loadFromTransitionedFile(transitionedFetchDate, earliestFetchTime, latestFetchTime);
+                Collection<RawDataFile> dataFiles = loadFromTransitionedFile(
+                    transitionedFetchDate,
+                    earliestFetchTime,
+                    latestFetchTime //
+                );
                 loaded.addAll(dataFiles);
 
                 remainingFileLimit -= dataFiles.size();
@@ -165,10 +180,10 @@ public class Loader {
             loaded.addAll(loadFromTransitionalFiles(earliestFetchTime, latestFetchTime, remainingFileLimit));
         } catch (IOException ex) {
             LOGGER.warn(
-                    "Loading data failed; requested at most " + fileLimit + " files from "
-                    + (earliestFetchTime != null ? earliestFetchTime.toString() : "null") + " to "
-                    + (latestFetchTime != null ? latestFetchTime.toString() : "null"),
-                    ex
+                "Loading data failed; requested at most " + fileLimit
+                    + " files from " + (earliestFetchTime != null ? earliestFetchTime.toString() : "null")
+                    + " to " + (latestFetchTime != null ? latestFetchTime.toString() : "null"),
+                ex //
             );
             return null;
         }
@@ -177,7 +192,8 @@ public class Loader {
 
         LOGGER.debug("Loaded total of {} files", loaded.size());
 
-        // FIXME: does not seem to be effective file limit (limit by min maximumDataFilesPerRequest?)
+        // FIXME: does not seem to be effective file limit (limit by min
+        // maximumDataFilesPerRequest?)
         if (loaded.size() > fileLimit) {
             loaded = loaded.subList(0, fileLimit);
         }
@@ -188,9 +204,9 @@ public class Loader {
     }
 
     /**
-     * Limits the given timestamp for the earliest fetch time to be retrieved by
-     * the oldest available transitioned (packed) archived file, returning only
-     * the date.
+     * Limits the given timestamp for the earliest fetch time to be retrieved by the
+     * oldest available transitioned (packed) archived file, returning only the
+     * date.
      *
      * @param earliestFetchTime earliest fetch time to retrieve
      * @return fetch date limited by available transitioned data
@@ -223,29 +239,38 @@ public class Loader {
      * Searches the earliest available date available from transitioned (packed)
      * data. Later data may be available as transitional files.
      *
-     * @return date of earliest available transitioned data; null if no
-     * transitioned data available
+     * @return date of earliest available transitioned data; null if no transitioned
+     *         data available
      * @throws IOException
      */
     private LocalDate findEarliestTransitionedFetchDate() throws IOException {
         int year = findNumericDirectoryNameMinimum(transitionedBasePath, PATTERN_DIRECTORY_YEAR)
-                .orElse(-1);
+            .orElse(-1);
         if (year < 0) {
-            LOGGER.warn("Transitioned data appears to be missing year folders; this indicates there is no transitioned data at all! Check if that is correct.");
+            LOGGER.warn(
+                "Transitioned data appears to be missing year folders; this indicates there is no transitioned data at all! Check if that is correct." //
+            );
             return null;
         }
 
         int month = findNumericDirectoryNameMinimum(getTransitionedDirectory(year), PATTERN_DIRECTORY_MONTH)
-                .orElse(-1);
+            .orElse(-1);
         if (month < 0) {
-            LOGGER.error("Transitioned data appears to be missing month folders for year {}; this indicates corrupted folder structure! Data will be inaccessible.", year);
+            LOGGER.error(
+                "Transitioned data appears to be missing month folders for year {}; this indicates corrupted folder structure! Data will be inaccessible.",
+                year //
+            );
             return null;
         }
 
-        int day = findNumericFileNameMinimum(getTransitionedDirectory(year, month), PATTERN_ARCHIVE, PATTERN_ARCHIVE_DAY)
+        int day = findNumericFileNameMinimum(getTransitionedDirectory(year, month), PATTERN_ARCHIVE,
+            PATTERN_ARCHIVE_DAY)
                 .orElse(-1);
         if (day < 0) {
-            LOGGER.error("Transitioned data appears to be missing day files for month {}, year {}; this indicates corrupted folder structure! Data will be inaccessible.", month, year);
+            LOGGER.error(
+                "Transitioned data appears to be missing day files for month {}, year {}; this indicates corrupted folder structure! Data will be inaccessible.",
+                month, year //
+            );
             return null;
         }
 
@@ -253,8 +278,8 @@ public class Loader {
     }
 
     /**
-     * Returns a reference to the expected directory holding transitioned data
-     * for given year.
+     * Returns a reference to the expected directory holding transitioned data for
+     * given year.
      *
      * @param year year to reference directory for
      * @return reference to the expected directory
@@ -265,8 +290,8 @@ public class Loader {
     }
 
     /**
-     * Returns a reference to the expected directory holding transitioned data
-     * for given month of year.
+     * Returns a reference to the expected directory holding transitioned data for
+     * given month of year.
      *
      * @param year year to reference directory for
      * @param month month to reference directory for
@@ -274,19 +299,22 @@ public class Loader {
      * @throws IOException
      */
     private File getTransitionedDirectory(int year, int month) throws IOException {
-        return new File(String.format("%s%s%04d%s%02d", transitionedBasePath.getCanonicalPath(), File.separator, year, File.separator, month));
+        return new File(String.format("%s%s%04d%s%02d", transitionedBasePath.getCanonicalPath(), File.separator, year,
+            File.separator, month));
     }
 
     /**
-     * Returns a reference to the expected archive file holding transitioned
-     * data for given date.
+     * Returns a reference to the expected archive file holding transitioned data
+     * for given date.
      *
      * @param fetchDate date to reference file for
      * @return reference to the expected archive file
      * @throws IOException
      */
     private File getTransitionedArchiveFile(LocalDate fetchDate) throws IOException {
-        return new File(String.format("%s%s%04d%s%02d%s%s", transitionedBasePath.getCanonicalPath(), File.separator, fetchDate.getYear(), File.separator, fetchDate.getMonthValue(), File.separator, getTransitionedArchiveFileName(fetchDate)));
+        return new File(String.format("%s%s%04d%s%02d%s%s", transitionedBasePath.getCanonicalPath(), File.separator,
+            fetchDate.getYear(), File.separator, fetchDate.getMonthValue(), File.separator,
+            getTransitionedArchiveFileName(fetchDate)));
     }
 
     /**
@@ -301,12 +329,11 @@ public class Loader {
     }
 
     /**
-     * Searches the given directory for the child directory with smallest
-     * numeric name.
+     * Searches the given directory for the child directory with smallest numeric
+     * name.
      *
      * @param directory parent directory to search in
-     * @param pattern Pattern of accepted directory names (not used for
-     * extraction)
+     * @param pattern Pattern of accepted directory names (not used for extraction)
      * @return number of smallest directory name; empty if not found, never null
      */
     private OptionalInt findNumericDirectoryNameMinimum(File directory, Pattern pattern) {
@@ -316,11 +343,11 @@ public class Loader {
         }
 
         return Arrays.stream(directory.listFiles())
-                .filter(File::isDirectory)
-                .map(File::getName)
-                .filter(patternMatches(pattern))
-                .mapToInt(Integer::parseInt)
-                .min();
+            .filter(File::isDirectory)
+            .map(File::getName)
+            .filter(patternMatches(pattern))
+            .mapToInt(Integer::parseInt)
+            .min();
     }
 
     /**
@@ -328,10 +355,10 @@ public class Loader {
      *
      * @param directory directory to search in
      * @param pattern Pattern to apply to file names
-     * @param matcherGroupIndex Pattern Matcher group index to extract numeric
-     * value from
+     * @param matcherGroupIndex Pattern Matcher group index to extract numeric value
+     *        from
      * @return number of smallest extraction from file name; empty if not found,
-     * never null
+     *         never null
      */
     private OptionalInt findNumericFileNameMinimum(File directory, Pattern pattern, int matcherGroupIndex) {
         if (!directory.exists() || !directory.isDirectory()) {
@@ -340,13 +367,13 @@ public class Loader {
         }
 
         return Arrays.stream(directory.listFiles())
-                .filter(File::isFile)
-                .map(File::getName)
-                .map(pattern::matcher)
-                .filter(Matcher::matches)
-                .map(m -> m.group(matcherGroupIndex))
-                .mapToInt(Integer::parseInt)
-                .min();
+            .filter(File::isFile)
+            .map(File::getName)
+            .map(pattern::matcher)
+            .filter(Matcher::matches)
+            .map(m -> m.group(matcherGroupIndex))
+            .mapToInt(Integer::parseInt)
+            .min();
     }
 
     /**
@@ -391,9 +418,9 @@ public class Loader {
 
     /**
      * Returns the UTC date of given timestamp. An interesting quirk of the Java
-     * date/time API is that Instants can outgrow LocalDate so only a limited
-     * value range is supported on conversion to dates. The result of this
-     * method is therefore limited to a hard-coded range of dates.
+     * date/time API is that Instants can outgrow LocalDate so only a limited value
+     * range is supported on conversion to dates. The result of this method is
+     * therefore limited to a hard-coded range of dates.
      *
      * @param timestamp timestamp to convert
      * @return UTC date of timestamp, limited to a reasonable value range
@@ -412,7 +439,8 @@ public class Loader {
         return timestamp.atOffset(ZoneOffset.UTC).toLocalDate();
     }
 
-    private Collection<RawDataFile> loadFromTransitionalFiles(Instant earliestFetchTime, Instant latestFetchTime, int fileLimit) throws IOException {
+    private Collection<RawDataFile> loadFromTransitionalFiles(Instant earliestFetchTime, Instant latestFetchTime, int fileLimit)
+        throws IOException {
         // TODO: documentation, random order
 
         Map<Instant, RawDataFile> loaded = new HashMap<>();
@@ -474,9 +502,9 @@ public class Loader {
     }
 
     /**
-     * Extracts the fetch timestamp from given file name of an archived file.
-     * Actual file-system timestamps are not taken into account as they have
-     * nothing to do with the timestamp of fetching data.
+     * Extracts the fetch timestamp from given file name of an archived file. Actual
+     * file-system timestamps are not taken into account as they have nothing to do
+     * with the timestamp of fetching data.
      *
      * @param filename file name to extract time from
      * @return timestamp extracted from filename; null if unavailable
@@ -498,14 +526,13 @@ public class Loader {
     }
 
     /**
-     * Checks if the given actual timestamp is in range between specified
-     * earliest and latest timestamps.
+     * Checks if the given actual timestamp is in range between specified earliest
+     * and latest timestamps.
      *
      * @param actual actual timestamp to be checked
      * @param earliest earliest valid timestamp, lower end of value range
-     * (inclusive)
-     * @param latest latest valid timestamp, upper end of value range
-     * (inclusive)
+     *        (inclusive)
+     * @param latest latest valid timestamp, upper end of value range (inclusive)
      * @return true if actual value is in range, false if out of range
      */
     private boolean inRange(Instant actual, Instant earliest, Instant latest) {
@@ -513,18 +540,17 @@ public class Loader {
     }
 
     /**
-     * Determines if data for the given fetch date should be attempted to be
-     * loaded from a transitioned file. The decision is based on two factors:
+     * Determines if data for the given fetch date should be attempted to be loaded
+     * from a transitioned file. The decision is based on two factors:
      * <ul>
      * <li>Is the date in range of requested data to be loaded?</li>
      * <li>Is data for given date expected to have been transitioned?</li>
      * </ul>
      *
      * @param fetchDate date to check access for
-     * @param latestFetchTime fetch timestamp of latest file requested to be
-     * loaded
-     * @return true if loading should be attempted from transitioned file, false
-     * if not
+     * @param latestFetchTime fetch timestamp of latest file requested to be loaded
+     * @return true if loading should be attempted from transitioned file, false if
+     *         not
      */
     private boolean shouldLoadFromTransitionedFile(LocalDate fetchDate, Instant latestFetchTime) {
         // check if out of requested range
@@ -540,18 +566,18 @@ public class Loader {
     /**
      * Loads data from transitioned files. Loading transitioned files means
      * decompressing and reading an archive. No specific order of data should be
-     * assumed from reading an archive, so it needs to be sorted and any
-     * limitation of maximum number of files needs to be taken care of outside
-     * of this method.
+     * assumed from reading an archive, so it needs to be sorted and any limitation
+     * of maximum number of files needs to be taken care of outside of this method.
      *
-     * @param fetchDate fetch date of transitioned data (determines archive to
-     * be opened)
+     * @param fetchDate fetch date of transitioned data (determines archive to be
+     *        opened)
      * @param earliestFetchTime earliest fetch time to include in result
      * @param latestFetchTime latest fetch time to include in result
      * @return all files matching given time range in random order
      * @throws IOException
      */
-    private Collection<RawDataFile> loadFromTransitionedFile(LocalDate fetchDate, Instant earliestFetchTime, Instant latestFetchTime) throws IOException {
+    private Collection<RawDataFile> loadFromTransitionedFile(LocalDate fetchDate, Instant earliestFetchTime, Instant latestFetchTime)
+        throws IOException {
         Map<Instant, RawDataFile> loaded = new HashMap<>();
 
         File archiveFile = getTransitionedArchiveFile(fetchDate);
@@ -559,14 +585,20 @@ public class Loader {
         LOGGER.debug("opening transitioned file {}", archiveFile);
 
         if (!archiveFile.exists() || !archiveFile.canRead()) {
-            throw new RuntimeException("expected archive file " + archiveFile.getCanonicalPath() + " does not exist or is inaccessible, unable to load data");
+            throw new RuntimeException(
+                "expected archive file " + archiveFile.getCanonicalPath()
+                    + " does not exist or is inaccessible, unable to load data" //
+            );
         }
 
         try (
-                FileInputStream fis = new FileInputStream(archiveFile);
-                CompressorInputStream cis = compressorStreamFactory.createCompressorInputStream(CompressorStreamFactory.XZ, fis);
-                ArchiveInputStream ais = archiveStreamFactory.createArchiveInputStream(ArchiveStreamFactory.TAR, cis); //
-                ) {
+            FileInputStream fis = new FileInputStream(archiveFile);
+            CompressorInputStream cis = compressorStreamFactory.createCompressorInputStream(
+                CompressorStreamFactory.XZ, //
+                fis //
+            );
+            ArchiveInputStream ais = archiveStreamFactory.createArchiveInputStream(ArchiveStreamFactory.TAR, cis); //
+        ) {
             ArchiveEntry entry;
             while ((entry = ais.getNextEntry()) != null) {
                 String fileName = entry.getName();
@@ -597,7 +629,10 @@ public class Loader {
                         break;
 
                     default:
-                        LOGGER.warn("File type {} read from {} of {} is not taken into account!", fileType, fileName, archiveFile);
+                        LOGGER.warn(
+                            "File type {} read from {} of {} is not taken into account!",
+                            fileType, fileName, archiveFile //
+                        );
                         break;
                 }
             }
@@ -646,11 +681,11 @@ public class Loader {
     }
 
     /**
-     * Loads meta data from the file whose contents are given as a byte array
-     * and copies available information to the {@link RawDataFile}. Since meta
-     * data contains the fetch time again, it will be used to verify the
-     * previously initialized value of {@link RawDataFile#fetchTime} for
-     * consistency. An exception will be raised in case of an inconsistency.
+     * Loads meta data from the file whose contents are given as a byte array and
+     * copies available information to the {@link RawDataFile}. Since meta data
+     * contains the fetch time again, it will be used to verify the previously
+     * initialized value of {@link RawDataFile#fetchTime} for consistency. An
+     * exception will be raised in case of an inconsistency.
      *
      * @param rawDataFile file linked to meta data
      * @param bytes content of meta data file
@@ -658,8 +693,8 @@ public class Loader {
      */
     private void loadMetaData(RawDataFile rawDataFile, byte[] bytes) throws IOException {
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-                InputStreamReader isr = new InputStreamReader(bais, CHARACTER_SET_META_DATA); //
-                ) {
+            InputStreamReader isr = new InputStreamReader(bais, CHARACTER_SET_META_DATA); //
+        ) {
             JsonObject json = (JsonObject) Jsoner.deserialize(isr);
 
             rawDataFile.setFetchUrlRequested(json.getString(LocalMetaDataJsonKey.FETCH_URL_REQUESTED));
@@ -667,7 +702,10 @@ public class Loader {
             String actualFetchTimestampString = json.getString(LocalMetaDataJsonKey.FETCH_TIME);
             Instant actualFetchTime = Instant.parse(actualFetchTimestampString);
             if (!rawDataFile.getFetchTime().equals(actualFetchTime)) {
-                throw new IOException("inconsistent data; fetch time was " + actualFetchTime + " according to meta data but has been indexed as " + rawDataFile.getFetchTime());
+                throw new IOException(
+                    "inconsistent data; fetch time was " + actualFetchTime
+                        + " according to meta data but has been indexed as " + rawDataFile.getFetchTime() //
+                );
             }
         } catch (JsonException ex) {
             throw new IOException("failed to deserialize meta data", ex);
