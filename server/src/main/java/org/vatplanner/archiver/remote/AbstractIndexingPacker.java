@@ -111,6 +111,7 @@ public abstract class AbstractIndexingPacker implements Packer {
      */
     private JsonObject buildFileMetaData(RawDataFile original) {
         JsonObject file = new JsonObject();
+        file.put(RemoteMetaDataFileJsonKey.FORMAT_NAME.getKey(), original.getFormatName());
         file.put(RemoteMetaDataFileJsonKey.FETCH_TIME.getKey(), original.getFetchTime().toString());
         putFileMetaDataIfNotNull(file, RemoteMetaDataFileJsonKey.FETCH_NODE, original.getFetchNode());
         putFileMetaDataIfNotNull(file, RemoteMetaDataFileJsonKey.FETCH_URL_REQUESTED, original.getFetchUrlRequested());

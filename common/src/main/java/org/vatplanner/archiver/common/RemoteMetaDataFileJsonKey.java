@@ -8,6 +8,13 @@ import com.github.cliftonlabs.json_simple.JsonKey;
  */
 public enum RemoteMetaDataFileJsonKey implements JsonKey {
     /**
+     * Holds the data file format's application-internal name.
+     *
+     * @see RawDataFile#getFormatName()
+     */
+    FORMAT_NAME("formatName"),
+
+    /**
      * Holds the timestamp of when fetched data had been requested.
      *
      * @see RawDataFile#getFetchTime()

@@ -24,6 +24,8 @@ Actual content and meta data are stored in a separate files, both using identica
 
 For immediate access, files of the current day are stored as single files called "transitional" in the context of this application. When the day has passed, all files for one day (indicated by fetch timestamps) are then compressed ("transitioned") into an archive, stored in a directory structure indexing archives by year and month. By experimentation, `.tar.xz` has proven to be an efficient, easy-to-access archive format to compress VATSIM data files to and still remain accessible by many tools.
 
+Data files may be available in different formats requiring different parsers. Over time new formats will appear and old ones will be removed. The archiver supports multiple formats (identified by internal names) to be stored and retrieved. On storage (both "transitional" and "transitioned") formats are kept separate from each other using a sub-directory of the internal format name. Therefore, format names are restricted in length and character set. Format names are local to the application environment and not part of the archiver except for `legacy` being used if no format is available (old storage format). See [`Validation#validateDataFileFormatName(String)`](server/src/main/java/org/vatplanner/archiver/local/Validation.java) for details on valid name syntax.
+
 ## Current API State
 
 API is currently not stable and may change without notice.

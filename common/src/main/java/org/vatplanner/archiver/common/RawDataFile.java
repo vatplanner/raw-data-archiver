@@ -17,6 +17,7 @@ public class RawDataFile {
     private String fetchUrlRequested;
     private String fetchUrlRetrieved;
     private String fetchNode;
+    private String formatName;
     private byte[] data;
     private boolean isCleared = false;
 
@@ -80,6 +81,25 @@ public class RawDataFile {
     public RawDataFile setFetchUrlRetrieved(String fetchUrlRetrieved) {
         this.fetchUrlRetrieved = fetchUrlRetrieved;
         return this;
+    }
+
+    /**
+     * Returns the application-internal name of the data file format.
+     * <p>
+     * Actual format names depend on the application and thus are not provided as
+     * part of the archiver. The only exception is
+     * {@link CommonConstants#DATA_FILE_FORMAT_NAME_LEGACY} which is used if no format is
+     * indicated (i.e. data before 2021).
+     * </p>
+     * 
+     * @return application-internal name of data file format
+     */
+    public String getFormatName() {
+        return formatName;
+    }
+
+    public void setFormatName(String formatName) {
+        this.formatName = formatName;
     }
 
     /**

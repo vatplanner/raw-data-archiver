@@ -155,21 +155,25 @@ public class RawDataFileClient {
                         Map<String, JsonObject> fileMetas = meta.getMapOrDefault(RemoteMetaDataContainerJsonKey.FILES);
                         for (Map.Entry<String, JsonObject> fileMeta : fileMetas.entrySet()) {
                             String fileName = fileMeta.getKey();
+                            JsonObject fields = fileMeta.getValue();
                             RawDataFile rawDataFile = rawDataFiles.computeIfAbsent(
                                 fileName,
                                 n -> new RawDataFile(null) //
                             );
+                            rawDataFile.setFormatName(
+                                fields.getString(RemoteMetaDataFileJsonKey.FORMAT_NAME) //
+                            );
                             rawDataFile.setFetchTime(Instant.parse(
-                                fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_TIME) //
+                                fields.getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_TIME) //
                             ));
                             rawDataFile.setFetchNode(
-                                fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_NODE) //
+                                fields.getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_NODE) //
                             );
                             rawDataFile.setFetchUrlRequested(
-                                fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_URL_REQUESTED) //
+                                fields.getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_URL_REQUESTED) //
                             );
                             rawDataFile.setFetchUrlRetrieved(
-                                fileMeta.getValue().getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_URL_RETRIEVED) //
+                                fields.getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_URL_RETRIEVED) //
                             );
                         }
                     } else {

@@ -1,5 +1,7 @@
 package org.vatplanner.archiver.local;
 
+import static org.vatplanner.archiver.local.Validation.validateDataFileFormatName;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,6 +35,7 @@ import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vatplanner.archiver.common.CommonConstants;
 import org.vatplanner.archiver.common.RawDataFile;
 
 import com.github.cliftonlabs.json_simple.JsonException;
@@ -87,14 +90,14 @@ public class Loader {
     private final ArchiveStreamFactory archiveStreamFactory = new ArchiveStreamFactory();
 
     private static final Pattern PATTERN_FETCHED_FILENAME = Pattern.compile(
-        "^(\\d{4})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3])([0-5][0-9])([0-5][0-9])Z_.*" //
+        "^(|.*/)(\\d{4})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3])([0-5][0-9])([0-5][0-9])Z_.*" //
     );
-    private static final int PATTERN_FETCHED_FILENAME_YEAR = 1;
-    private static final int PATTERN_FETCHED_FILENAME_MONTH = 2;
-    private static final int PATTERN_FETCHED_FILENAME_DAY = 3;
-    private static final int PATTERN_FETCHED_FILENAME_HOUR = 4;
-    private static final int PATTERN_FETCHED_FILENAME_MINUTE = 5;
-    private static final int PATTERN_FETCHED_FILENAME_SECOND = 6;
+    private static final int PATTERN_FETCHED_FILENAME_YEAR = 2;
+    private static final int PATTERN_FETCHED_FILENAME_MONTH = 3;
+    private static final int PATTERN_FETCHED_FILENAME_DAY = 4;
+    private static final int PATTERN_FETCHED_FILENAME_HOUR = 5;
+    private static final int PATTERN_FETCHED_FILENAME_MINUTE = 6;
+    private static final int PATTERN_FETCHED_FILENAME_SECOND = 7;
 
     private static final Pattern PATTERN_DIRECTORY_YEAR = Pattern.compile("^\\d{4}$");
 
@@ -108,6 +111,9 @@ public class Loader {
     private static final DateTimeFormatter FORMATTER_ARCHIVE_NAME = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final String ARCHIVE_EXTENSION = ".tar.xz";
 
+    private static final Pattern PATTERN_FILE_DIRECTORY = Pattern.compile("^(.*)/.*?");
+    private static final int PATTERN_FILE_DIRECTORY_DIRECTORY = 1;
+
     private static final int MAXIMUM_LOCAL_DATE_YEAR = 9999; // live long and prosper...
     private static final Instant MINIMUM_LOCAL_DATE_INSTANT = Instant.EPOCH;
     private static final Instant MAXIMUM_LOCAL_DATE_INSTANT = ZonedDateTime.of(
@@ -115,6 +121,8 @@ public class Loader {
     ).toInstant();
 
     private static final Charset CHARACTER_SET_META_DATA = StandardCharsets.UTF_8;
+
+    private static final int MAXIMUM_FILE_RECURSION_DEPTH = 1;
 
     public Loader(StorageConfiguration config, TransitionChecker transitionChecker) {
         maximumDataFilesPerRequest = config.getMaximumDataFilesPerRequest();
@@ -442,9 +450,11 @@ public class Loader {
     private Collection<RawDataFile> loadFromTransitionalFiles(Instant earliestFetchTime, Instant latestFetchTime, int fileLimit) throws IOException {
         // TODO: documentation, random order
 
-        Map<Instant, RawDataFile> loaded = new HashMap<>();
+        String transitionalBasePathCanonicalName = transitionalBasePath.getCanonicalPath();
 
-        List<File> files = Arrays.asList(transitionalBasePath.listFiles());
+        Map<String, RawDataFile> loaded = new HashMap<>();
+
+        List<File> files = listOnlyFilesRecursive(transitionalBasePath, MAXIMUM_FILE_RECURSION_DEPTH);
 
         // sort in order to be able to check file limit
         files.sort(Comparator.comparing(File::getName));
@@ -467,14 +477,36 @@ public class Loader {
                 continue;
             }
 
+            // first sub-directory of data is format name
+            String formatName = file.getParentFile().getName();
+            String canonicalFilePath = file.getParentFile().getCanonicalPath();
+            if (transitionalBasePathCanonicalName.equals(canonicalFilePath)) {
+                LOGGER.warn(
+                    "Bad directory structure, files must be present in sub-directories per format, assuming legacy format for {}",
+                    file //
+                );
+                formatName = CommonConstants.DATA_FILE_FORMAT_NAME_LEGACY;
+            }
+            if (!canonicalFilePath.startsWith(transitionalBasePathCanonicalName)) {
+                throw new IOException("Possible escape from transitional base path detected: " + canonicalFilePath);
+            }
+            if (!validateDataFileFormatName(formatName)) {
+                throw new IOException("Illegal data file format name: " + formatName);
+            }
+
+            // use a combination of fetch time and format as map key to avoid collisions
+            // between different formats with same fetch time
+            String loadedKey = fetchTime.toString() + " " + formatName;
+
             // stop if new timestamp is encountered but limit is reached
             // (files are processed ordered, so we can reliably quit early when
             // a new timestamp is encountered)
-            if (!loaded.containsKey(fetchTime) && (loaded.size() >= fileLimit)) {
+            if (!loaded.containsKey(loadedKey) && (loaded.size() >= fileLimit)) {
                 break;
             }
 
-            RawDataFile rawDataFile = loaded.computeIfAbsent(fetchTime, RawDataFile::new);
+            RawDataFile rawDataFile = loaded.computeIfAbsent(loadedKey, x -> new RawDataFile(fetchTime));
+            rawDataFile.setFormatName(formatName);
 
             try {
                 byte[] bytes = readFile(file);
@@ -500,6 +532,23 @@ public class Loader {
         return loaded.values();
     }
 
+    private List<File> listOnlyFilesRecursive(File parent, int maxDepth) {
+        // TODO: move to utils?
+        List<File> out = new ArrayList<File>();
+        listOnlyFilesRecursive(parent, maxDepth, 1, out);
+        return out;
+    }
+
+    private void listOnlyFilesRecursive(File parent, int maxDepth, int currentDepth, List<File> out) {
+        for (File file : parent.listFiles()) {
+            if (file.isFile()) {
+                out.add(file);
+            } else if (file.isDirectory() && currentDepth <= maxDepth) {
+                listOnlyFilesRecursive(file, maxDepth, currentDepth + 1, out);
+            }
+        }
+    }
+
     /**
      * Extracts the fetch timestamp from given file name of an archived file. Actual
      * file-system timestamps are not taken into account as they have nothing to do
@@ -522,6 +571,21 @@ public class Loader {
         int second = Integer.parseInt(matcher.group(PATTERN_FETCHED_FILENAME_SECOND));
 
         return LocalDateTime.of(year, month, day, hour, minute, second).atOffset(ZoneOffset.UTC).toInstant();
+    }
+
+    /**
+     * Extracts the directories from given file path.
+     *
+     * @param filePath file path to extract directories from
+     * @return directories extracted from filename; empty if unavailable
+     */
+    private String extractDirectories(String filePath) {
+        Matcher matcher = PATTERN_FILE_DIRECTORY.matcher(filePath);
+        if (!matcher.matches()) {
+            return "";
+        }
+
+        return matcher.group(PATTERN_FILE_DIRECTORY_DIRECTORY);
     }
 
     /**
@@ -614,7 +678,17 @@ public class Loader {
                     continue;
                 }
 
+                // format name is used as directory path in archives
+                String dataFileFormat = extractDirectories(fileName);
+                if (dataFileFormat.isEmpty()) {
+                    dataFileFormat = CommonConstants.DATA_FILE_FORMAT_NAME_LEGACY;
+                }
+                if (!validateDataFileFormatName(dataFileFormat)) {
+                    throw new IOException("Illegal data file format name: " + dataFileFormat);
+                }
+
                 RawDataFile rawDataFile = loaded.computeIfAbsent(fetchTime, RawDataFile::new);
+                rawDataFile.setFormatName(dataFileFormat);
                 byte[] bytes = readArchiveEntry(ais, entry);
 
                 switch (fileType) {
