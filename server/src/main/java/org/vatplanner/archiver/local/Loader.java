@@ -1,5 +1,6 @@
 package org.vatplanner.archiver.local;
 
+import static java.util.Collections.emptySet;
 import static org.vatplanner.archiver.local.Validation.validateDataFileFormatName;
 
 import java.io.ByteArrayInputStream;
@@ -24,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -135,7 +137,8 @@ public class Loader {
     /**
      * Loads and returns all data fetched between given timestamps. The maximum
      * number of files is limited by the hard maximum specified in application
-     * configuration. The result is ordered by oldest fetched entry first.
+     * configuration. The result is ordered by oldest fetched entry first. All data
+     * file formats will be loaded.
      *
      * @param earliestFetchTime earliest fetch time to include in result
      * @param latestFetchTime latest fetch time to include in result
@@ -143,23 +146,27 @@ public class Loader {
      *         timestamps (ascending order); null on error
      */
     public List<RawDataFile> load(Instant earliestFetchTime, Instant latestFetchTime) {
-        return load(earliestFetchTime, latestFetchTime, maximumDataFilesPerRequest);
+        return load(earliestFetchTime, latestFetchTime, maximumDataFilesPerRequest, emptySet());
     }
 
     /**
      * Loads and returns all data fetched between given timestamps. The specified
      * maximum number of files is only effective if it is less than the hard maximum
      * limit specified in application configuration. The result is ordered by oldest
-     * fetched entry first.
+     * fetched entry first. If given, only the selected data file formats are
+     * returned with file limit not including any ignored formats.
      *
      * @param earliestFetchTime earliest fetch time to include in result
      * @param latestFetchTime latest fetch time to include in result
      * @param fileLimit maximum number of files to be returned; may be restricted
      *        further by configuration
+     * @param wantedDataFileFormatNames names of data file formats to load; all
+     *        formats will be loaded if empty
      * @return at most the requested number of files fetched between given
      *         timestamps (ascending order); null on error
+     * @throws IllegalArgumentException if illegal data format name is requested
      */
-    public List<RawDataFile> load(Instant earliestFetchTime, Instant latestFetchTime, int fileLimit) {
+    public List<RawDataFile> load(Instant earliestFetchTime, Instant latestFetchTime, int fileLimit, Set<String> wantedDataFileFormatNames) {
         // TODO: catch IOException, log and return null instead
 
         int remainingFileLimit = Integer.min(fileLimit, maximumDataFilesPerRequest);
@@ -169,6 +176,12 @@ public class Loader {
             remainingFileLimit, fileLimit, earliestFetchTime, latestFetchTime //
         );
 
+        for (String formatName : wantedDataFileFormatNames) {
+            if (!validateDataFileFormatName(formatName)) {
+                throw new IllegalArgumentException("Illegal data file format requested: \"" + formatName + "\"");
+            }
+        }
+
         List<RawDataFile> loaded = new ArrayList<>();
 
         try {
@@ -177,7 +190,8 @@ public class Loader {
                 Collection<RawDataFile> dataFiles = loadFromTransitionedFile(
                     transitionedFetchDate,
                     earliestFetchTime,
-                    latestFetchTime //
+                    latestFetchTime,
+                    wantedDataFileFormatNames //
                 );
                 loaded.addAll(dataFiles);
 
@@ -185,7 +199,8 @@ public class Loader {
                 transitionedFetchDate = transitionedFetchDate.plusDays(1);
             }
 
-            loaded.addAll(loadFromTransitionalFiles(earliestFetchTime, latestFetchTime, remainingFileLimit));
+            loaded.addAll(loadFromTransitionalFiles(earliestFetchTime, latestFetchTime, remainingFileLimit,
+                wantedDataFileFormatNames));
         } catch (IOException ex) {
             LOGGER.warn(
                 "Loading data failed; requested at most " + fileLimit
@@ -447,7 +462,7 @@ public class Loader {
         return timestamp.atOffset(ZoneOffset.UTC).toLocalDate();
     }
 
-    private Collection<RawDataFile> loadFromTransitionalFiles(Instant earliestFetchTime, Instant latestFetchTime, int fileLimit) throws IOException {
+    private Collection<RawDataFile> loadFromTransitionalFiles(Instant earliestFetchTime, Instant latestFetchTime, int fileLimit, Set<String> wantedDataFileFormatNames) throws IOException {
         // TODO: documentation, random order
 
         String transitionalBasePathCanonicalName = transitionalBasePath.getCanonicalPath();
@@ -478,35 +493,43 @@ public class Loader {
             }
 
             // first sub-directory of data is format name
-            String formatName = file.getParentFile().getName();
+            String dataFileFormat = file.getParentFile().getName();
             String canonicalFilePath = file.getParentFile().getCanonicalPath();
             if (transitionalBasePathCanonicalName.equals(canonicalFilePath)) {
                 LOGGER.warn(
                     "Bad directory structure, files must be present in sub-directories per format, assuming legacy format for {}",
                     file //
                 );
-                formatName = CommonConstants.DATA_FILE_FORMAT_NAME_LEGACY;
+                dataFileFormat = CommonConstants.DATA_FILE_FORMAT_NAME_LEGACY;
             }
             if (!canonicalFilePath.startsWith(transitionalBasePathCanonicalName)) {
                 throw new IOException("Possible escape from transitional base path detected: " + canonicalFilePath);
             }
-            if (!validateDataFileFormatName(formatName)) {
-                throw new IOException("Illegal data file format name: " + formatName);
+            if (!validateDataFileFormatName(dataFileFormat)) {
+                throw new IOException("Illegal data file format name: " + dataFileFormat);
+            }
+
+            // skip unwanted data file formats
+            boolean isWantedFormat = wantedDataFileFormatNames.isEmpty()
+                || wantedDataFileFormatNames.contains(dataFileFormat);
+            if (!isWantedFormat) {
+                LOGGER.trace("skipping unwanted data file format {}", dataFileFormat);
+                continue;
             }
 
             // use a combination of fetch time and format as map key to avoid collisions
             // between different formats with same fetch time
-            String loadedKey = fetchTime.toString() + " " + formatName;
+            String loadedKey = fetchTime.toString() + " " + dataFileFormat;
 
-            // stop if new timestamp is encountered but limit is reached
+            // stop if new data file is encountered but limit is reached
             // (files are processed ordered, so we can reliably quit early when
-            // a new timestamp is encountered)
+            // a new data file is encountered)
             if (!loaded.containsKey(loadedKey) && (loaded.size() >= fileLimit)) {
                 break;
             }
 
             RawDataFile rawDataFile = loaded.computeIfAbsent(loadedKey, x -> new RawDataFile(fetchTime));
-            rawDataFile.setFormatName(formatName);
+            rawDataFile.setFormatName(dataFileFormat);
 
             try {
                 byte[] bytes = readFile(file);
@@ -636,10 +659,12 @@ public class Loader {
      *        opened)
      * @param earliestFetchTime earliest fetch time to include in result
      * @param latestFetchTime latest fetch time to include in result
-     * @return all files matching given time range in random order
+     * @param wantedDataFileFormatNames names of data file formats to load; all
+     *        formats will be loaded if empty
+     * @return all files matching given time range and formats in random order
      * @throws IOException
      */
-    private Collection<RawDataFile> loadFromTransitionedFile(LocalDate fetchDate, Instant earliestFetchTime, Instant latestFetchTime) throws IOException {
+    private Collection<RawDataFile> loadFromTransitionedFile(LocalDate fetchDate, Instant earliestFetchTime, Instant latestFetchTime, Set<String> wantedDataFileFormatNames) throws IOException {
         Map<Instant, RawDataFile> loaded = new HashMap<>();
 
         File archiveFile = getTransitionedArchiveFile(fetchDate);
@@ -685,6 +710,14 @@ public class Loader {
                 }
                 if (!validateDataFileFormatName(dataFileFormat)) {
                     throw new IOException("Illegal data file format name: " + dataFileFormat);
+                }
+
+                // skip unwanted data file formats
+                boolean isWantedFormat = wantedDataFileFormatNames.isEmpty()
+                    || wantedDataFileFormatNames.contains(dataFileFormat);
+                if (!isWantedFormat) {
+                    LOGGER.trace("skipping unwanted data file format {}", dataFileFormat);
+                    continue;
                 }
 
                 RawDataFile rawDataFile = loaded.computeIfAbsent(fetchTime, RawDataFile::new);

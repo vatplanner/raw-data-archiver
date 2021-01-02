@@ -1,12 +1,14 @@
 package org.vatplanner.archiver.common;
 
+import java.util.Collections;
+
 import com.github.cliftonlabs.json_simple.JsonKey;
 
 /**
  * JSON keys describing request parameters for data files.
  */
 public enum DataFileRequestJsonKey implements JsonKey {
-    DATA_FILE_FORMATS("dataFileFormats"),
+    DATA_FILE_FORMATS("dataFileFormats", Collections.emptyList()),
     PACKER_METHOD("packerMethod"),
     FILE_LIMIT("fileLimit", 1000),
     EARLIEST_FETCH_TIME("earliestFetchTime"),

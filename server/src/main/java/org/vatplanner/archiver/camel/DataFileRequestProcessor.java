@@ -2,7 +2,9 @@ package org.vatplanner.archiver.camel;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -48,10 +50,13 @@ public class DataFileRequestProcessor implements Processor {
         Instant earliestFetchTime = Instant.parse(json.getString(DataFileRequestJsonKey.EARLIEST_FETCH_TIME));
         Instant latestFetchTime = Instant.parse(json.getString(DataFileRequestJsonKey.LATEST_FETCH_TIME));
         int fileLimit = json.getIntegerOrDefault(DataFileRequestJsonKey.FILE_LIMIT);
+        Set<String> wantedDataFileFormats = new HashSet<String>(
+            json.getCollectionOrDefault(DataFileRequestJsonKey.DATA_FILE_FORMATS) //
+        );
 
         LOGGER.info(
-            "Processing data file request: earliest {}, latest {}, packer {}, file limit {}",
-            earliestFetchTime, latestFetchTime, packerMethod, fileLimit //
+            "Processing data file request: earliest {}, latest {}, packer {}, file limit {}, data file formats {}",
+            earliestFetchTime, latestFetchTime, packerMethod, fileLimit, wantedDataFileFormats //
         );
 
         // load data
@@ -59,7 +64,8 @@ public class DataFileRequestProcessor implements Processor {
         List<RawDataFile> loaded = loader.load(
             earliestFetchTime,
             latestFetchTime,
-            fileLimit //
+            fileLimit,
+            wantedDataFileFormats //
         );
         Instant afterLoading = Instant.now();
 
