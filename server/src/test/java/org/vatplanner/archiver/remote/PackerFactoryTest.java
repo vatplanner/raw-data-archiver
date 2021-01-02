@@ -1,69 +1,30 @@
 package org.vatplanner.archiver.remote;
 
-import static com.tngtech.java.junit.dataprovider.DataProviders.crossProduct;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.sameInstance;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.Arrays;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.junitpioneer.jupiter.CartesianProductTest;
 import org.vatplanner.archiver.common.PackerMethod;
 
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-
-@RunWith(DataProviderRunner.class)
 public class PackerFactoryTest {
-
-    @DataProvider
-    public static Object[][] dataProviderPackerMethods() {
-        PackerMethod[] methods = PackerMethod.values();
-        Object[][] out = new Object[methods.length][1];
-
-        for (int i = 0; i < methods.length; i++) {
-            out[i][0] = methods[i];
-        }
-
-        return out;
+    public static CartesianProductTest.Sets dataProviderPackerMethodsAndBoolean() {
+        return new CartesianProductTest.Sets()
+            .addAll(asList(PackerMethod.values()))
+            .add(true, false);
     }
 
-    @DataProvider
-    public static Object[][] dataProviderTarMethods() {
-        return new Object[][] {
-            { PackerMethod.TAR_BZIP2 },
-            { PackerMethod.TAR_DEFLATE },
-            { PackerMethod.TAR_GZIP },
-            { PackerMethod.TAR_LZMA },
-            { PackerMethod.TAR_UNCOMPRESSED },
-            { PackerMethod.TAR_XZ }
-        };
+    public static CartesianProductTest.Sets dataProviderTarMethodsAndBoolean() {
+        return new CartesianProductTest.Sets()
+            .addAll(Arrays.stream(PackerMethod.values()).filter(x -> x.name().startsWith("TAR_")))
+            .add(true, false);
     }
 
-    @DataProvider
-    public static Object[][] dataProviderBooleans() {
-        return new Object[][] {
-            { true },
-            { false }
-        };
-    }
-
-    @DataProvider
-    public static Object[][] dataProviderPackerMethodsAndBoolean() {
-        return crossProduct(dataProviderPackerMethods(), dataProviderBooleans());
-    }
-
-    @DataProvider
-    public static Object[][] dataProviderTarMethodsAndBoolean() {
-        return crossProduct(dataProviderTarMethods(), dataProviderBooleans());
-    }
-
-    @Test
-    @UseDataProvider("dataProviderPackerMethodsAndBoolean")
+    @CartesianProductTest(factory = "dataProviderPackerMethodsAndBoolean")
     public void testCreatePacker_anyPackerMethod_returnsNonNull(PackerMethod method, boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
@@ -72,11 +33,10 @@ public class PackerFactoryTest {
         Packer result = factory.createPacker(method);
 
         // Assert
-        assertThat(result, is(notNullValue()));
+        assertThat(result).isNotNull();
     }
 
-    @Test
-    @UseDataProvider("dataProviderPackerMethodsAndBoolean")
+    @CartesianProductTest(factory = "dataProviderPackerMethodsAndBoolean")
     public void testCreatePacker_anyPackerMethodSecondCall_returnsNewInstance(PackerMethod method, boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
@@ -86,11 +46,10 @@ public class PackerFactoryTest {
         Packer second = factory.createPacker(method);
 
         // Assert
-        assertThat(second, is(not(sameInstance(first))));
+        assertThat(second).isNotSameAs(first);
     }
 
-    @Test
-    @UseDataProvider("dataProviderPackerMethodsAndBoolean")
+    @CartesianProductTest(factory = "dataProviderPackerMethodsAndBoolean")
     public void testCreatePacker_anyPackerMethodSecondCall_returnsSameClass(PackerMethod method, boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
@@ -100,11 +59,11 @@ public class PackerFactoryTest {
         Packer second = factory.createPacker(method);
 
         // Assert
-        assertThat(second.getClass(), is(equalTo(first.getClass())));
+        assertThat(second).hasSameClassAs(first);
     }
 
-    @Test
-    @DataProvider({ "true", "false" })
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
     public void testCreatePacker_zipUncompressed_returnsUncompressedZipPacker(boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
@@ -113,11 +72,11 @@ public class PackerFactoryTest {
         Packer result = factory.createPacker(PackerMethod.ZIP_UNCOMPRESSED);
 
         // Assert
-        assertThat(result, is(instanceOf(UncompressedZipPacker.class)));
+        assertThat(result).isInstanceOf(UncompressedZipPacker.class);
     }
 
-    @Test
-    @DataProvider({ "true", "false" })
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
     public void testCreatePacker_zipDeflateSingleThreaded_returnsSingleThreadedZipDeflatePacker(boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
@@ -126,11 +85,11 @@ public class PackerFactoryTest {
         Packer result = factory.createPacker(PackerMethod.ZIP_DEFLATE_SINGLETHREADED);
 
         // Assert
-        assertThat(result, is(instanceOf(SingleThreadedZipDeflatePacker.class)));
+        assertThat(result).isInstanceOf(SingleThreadedZipDeflatePacker.class);
     }
 
-    @Test
-    @DataProvider({ "true", "false" })
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
     public void testCreatePacker_zipDeflateMultiThreaded_returnsMultiThreadedZipDeflatePacker(boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
@@ -139,11 +98,10 @@ public class PackerFactoryTest {
         Packer result = factory.createPacker(PackerMethod.ZIP_DEFLATE_MULTITHREADED);
 
         // Assert
-        assertThat(result, is(instanceOf(MultiThreadedZipDeflatePacker.class)));
+        assertThat(result).isInstanceOf(MultiThreadedZipDeflatePacker.class);
     }
 
-    @Test
-    @UseDataProvider("dataProviderTarMethodsAndBoolean")
+    @CartesianProductTest(factory = "dataProviderTarMethodsAndBoolean")
     public void testCreatePacker_tarMethod_returnsTarPacker(PackerMethod tarMethod, boolean autoSelectMultiThreading) {
         // Arrange
         PackerFactory factory = createFactory(autoSelectMultiThreading);
@@ -152,7 +110,7 @@ public class PackerFactoryTest {
         Packer result = factory.createPacker(tarMethod);
 
         // Assert
-        assertThat(result, is(instanceOf(TarPacker.class)));
+        assertThat(result).isInstanceOf(TarPacker.class);
     }
 
     @Test
@@ -164,7 +122,7 @@ public class PackerFactoryTest {
         Packer result = factory.createPacker(PackerMethod.ZIP_DEFLATE);
 
         // Assert
-        assertThat(result, is(instanceOf(SingleThreadedZipDeflatePacker.class)));
+        assertThat(result).isInstanceOf(SingleThreadedZipDeflatePacker.class);
     }
 
     @Test
@@ -176,7 +134,7 @@ public class PackerFactoryTest {
         Packer result = factory.createPacker(PackerMethod.ZIP_DEFLATE);
 
         // Assert
-        assertThat(result, is(instanceOf(MultiThreadedZipDeflatePacker.class)));
+        assertThat(result).isInstanceOf(MultiThreadedZipDeflatePacker.class);
     }
 
     private PackerFactory createFactory(boolean autoSelectMultiThreading) {
