@@ -1,14 +1,19 @@
 package org.vatplanner.archiver.client;
 
+import static java.util.Collections.emptyList;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
@@ -25,6 +30,7 @@ import org.vatplanner.archiver.common.RawDataFile;
 import org.vatplanner.archiver.common.RemoteMetaDataContainerJsonKey;
 import org.vatplanner.archiver.common.RemoteMetaDataFileJsonKey;
 
+import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
 import com.rabbitmq.client.Channel;
@@ -59,6 +65,10 @@ public class RawDataFileClient {
     }
 
     public CompletableFuture<Collection<RawDataFile>> request(PackerMethod packerMethod, Instant earliestFetchTime, Instant latestFetchTime, int fileLimit) {
+        return request(packerMethod, earliestFetchTime, latestFetchTime, fileLimit, emptyList());
+    }
+
+    public CompletableFuture<Collection<RawDataFile>> request(PackerMethod packerMethod, Instant earliestFetchTime, Instant latestFetchTime, int fileLimit, Collection<String> wantedFormats) {
         CompletableFuture<Collection<RawDataFile>> future = new CompletableFuture<>();
 
         final Channel channel;
@@ -73,6 +83,8 @@ public class RawDataFileClient {
 
         // FIXME: extract class or method
         new Thread(() -> {
+            Set<String> wantedFormatsAsSet = new HashSet<String>(wantedFormats);
+
             try {
                 RpcClient rpc = new RpcClient(
                     new RpcClientParams()
@@ -89,6 +101,13 @@ public class RawDataFileClient {
                     .putChain(DataFileRequestJsonKey.LATEST_FETCH_TIME.getKey(), latestFetchTime.toString())
                     .putChain(DataFileRequestJsonKey.PACKER_METHOD.getKey(), packerMethod.getRequestShortCode())
                     .putChain(DataFileRequestJsonKey.FILE_LIMIT.getKey(), fileLimit);
+
+                if (!wantedFormatsAsSet.isEmpty()) {
+                    jsonRequest.put(
+                        DataFileRequestJsonKey.DATA_FILE_FORMATS.getKey(),
+                        new JsonArray(wantedFormatsAsSet) //
+                    );
+                }
 
                 String jsonRequestString = jsonRequest.toJson();
                 LOGGER.debug("sending RPC request to AMQP: {}", jsonRequestString);
@@ -116,6 +135,7 @@ public class RawDataFileClient {
                 channel.close();
 
                 Map<String, RawDataFile> rawDataFiles = new HashMap<>();
+                Collection<String> unwantedEntryKeys = new ArrayList<String>();
 
                 boolean needsExplicitDecompression = //
                     !(responsePackerMethod.isUncompressed() || responsePackerMethod.isZipMethod());
@@ -156,13 +176,25 @@ public class RawDataFileClient {
                         for (Map.Entry<String, JsonObject> fileMeta : fileMetas.entrySet()) {
                             String fileName = fileMeta.getKey();
                             JsonObject fields = fileMeta.getValue();
+
+                            String formatName = fields.getString(RemoteMetaDataFileJsonKey.FORMAT_NAME);
+                            boolean isWantedFormat = wantedFormatsAsSet.isEmpty() || wantedFormats.contains(formatName);
+                            if (!isWantedFormat) {
+                                LOGGER.debug(
+                                    "received unwanted format \"{}\" from server, response may hold less files than requested",
+                                    formatName //
+                                );
+
+                                unwantedEntryKeys.add(fileName);
+
+                                continue;
+                            }
+
                             RawDataFile rawDataFile = rawDataFiles.computeIfAbsent(
                                 fileName,
                                 n -> new RawDataFile(null) //
                             );
-                            rawDataFile.setFormatName(
-                                fields.getString(RemoteMetaDataFileJsonKey.FORMAT_NAME) //
-                            );
+                            rawDataFile.setFormatName(formatName);
                             rawDataFile.setFetchTime(Instant.parse(
                                 fields.getStringOrDefault(RemoteMetaDataFileJsonKey.FETCH_TIME) //
                             ));
@@ -184,6 +216,15 @@ public class RawDataFileClient {
 
                 ais.close();
                 bis.close();
+
+                if (!unwantedEntryKeys.isEmpty()) {
+                    LOGGER.warn(
+                        "Received {} unwanted entries from server, number of returned files is reduced.",
+                        unwantedEntryKeys.size() //
+                    );
+
+                    unwantedEntryKeys.forEach(rawDataFiles::remove);
+                }
 
                 future.complete(rawDataFiles.values());
             } catch (Exception ex) {

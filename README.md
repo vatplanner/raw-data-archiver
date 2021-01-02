@@ -66,10 +66,13 @@ This section describes the details of communication between clients and server. 
 
 RPC requests are encoded in JSON, defining the time period to be retrieved (inclusive), the requested packer method and an optional file limit.
 
+`dataFileFormats` is also optional and can be used to limit the data files returned from server to just a selected set of formats. Format names vary over time and are subject to the application environment, see [Storage Concept](#storage-concept) for more details. If omitted, data files for all available formats will be returned.
+
 Example:
 
 ```json
 {
+  "dataFileFormats": ["legacy", "json_v3"],
   "packerMethod": "zip/deflate",
   "earliestFetchTime": "2019-12-01T00:00:00Z",
   "latestFetchTime": "2019-12-01T23:59:59Z",

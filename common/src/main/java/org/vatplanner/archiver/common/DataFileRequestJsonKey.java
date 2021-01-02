@@ -6,6 +6,7 @@ import com.github.cliftonlabs.json_simple.JsonKey;
  * JSON keys describing request parameters for data files.
  */
 public enum DataFileRequestJsonKey implements JsonKey {
+    DATA_FILE_FORMATS("dataFileFormats"),
     PACKER_METHOD("packerMethod"),
     FILE_LIMIT("fileLimit", 1000),
     EARLIEST_FETCH_TIME("earliestFetchTime"),
