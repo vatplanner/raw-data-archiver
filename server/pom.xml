@@ -23,7 +23,7 @@
 		<jsonSimple.version>3.1.0</jsonSimple.version>
 		<quartz.version>2.3.2</quartz.version>
 		<slf4j.version>1.7.32</slf4j.version>
-		<log4j.version>2.17.0</log4j.version>
+		<log4j.version>2.17.1</log4j.version>
 		<compress.version>1.21</compress.version>
 		<xz.version>1.9</xz.version>
 	</properties>
