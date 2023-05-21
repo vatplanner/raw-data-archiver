@@ -25,6 +25,10 @@
 		
 		<!-- build system dependencies -->
 		<surefire.version>3.0.0-M5</surefire.version>
+
+		<!-- QA -->
+		<sonar.organization>vatplanner</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<dependencyManagement>
